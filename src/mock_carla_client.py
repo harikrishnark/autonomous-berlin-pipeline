@@ -19,18 +19,32 @@ def mock_carla_camera(host='127.0.0.0', port=5005):
         print("❌ Could not connect! Make sure network_brain.py is running first.")
         return
 
-    # Use 0 for Mac webcam, or "path/to/video.mp4" for a downloaded dashcam video
+    # Try webcam (0), but if macOS privacy settings block it, fall back to the static image!
     cap = cv2.VideoCapture(0)
     
+    use_static_image = False
+    
     if not cap.isOpened():
-        print("Error: Could not open webcam.")
-        return
+        print("⚠️ Warning: Could not open Mac webcam (likely blocked by macOS Privacy Settings).")
+        print("Falling back to streaming the static 'bus.jpg' image to simulate continuous video feed...")
+        use_static_image = True
+        # Make sure bus.jpg exists, fallback to ultralytics download
+        import os
+        import urllib.request
+        if not os.path.exists("bus.jpg"):
+            urllib.request.urlretrieve("https://ultralytics.com/images/bus.jpg", "bus.jpg")
 
     try:
         while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
+            if use_static_image:
+                frame = cv2.imread("bus.jpg")
+                if frame is None:
+                    print("Error: Could not load bus.jpg")
+                    break
+            else:
+                ret, frame = cap.read()
+                if not ret:
+                    break
                 
             # Resize frame to save bandwidth (like CARLA would)
             frame = cv2.resize(frame, (640, 480))

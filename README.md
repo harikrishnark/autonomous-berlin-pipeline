@@ -32,12 +32,16 @@ pip install ultralytics opencv-python torch
 ```
 4. Run the perception test: `python src/brain_perception.py`
 
-### Teammate B (Control/ROS 2) Environment
-1. Use an Ubuntu 22.04 machine (or WSL2 on Windows).
-2. Install [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html).
-3. Clone this repository into your ROS 2 Workspace `src/` folder.
-4. Begin writing the C++ subscriber node to listen for data coming from the Python perception pipeline.
+### Teammate B (CARLA Cloud Server) Environment
+Because CARLA is too heavy to run natively on a Mac, we deploy it via a Cloud Virtual Machine.
+1. Rent a **RunPod Virtual Machine** (e.g., RTX 3090, 200GB storage). **Crucial:** Use a "CARLA" or "Ubuntu VNC Desktop" Community Template so you can watch the simulation live in your browser.
+2. Clone this repository into the Cloud VM.
+3. Start the CARLA Server in the background.
+4. Run the spawner script: `python src/carla_spawner.py`.
+5. *(Optional)* Download the generated `simulation_run.mp4` file for your portfolio.
 
 ## 📁 Repository Structure
-* `src/` - Contains the Python (PyTorch) and C++ (ROS 2) nodes.
+* `src/` - Contains the Python (PyTorch) AI logic and the CARLA Server networking scripts.
+* `maps/` - Contains the extracted OpenStreetMap (`.osm`) files serving as the 3D world blueprint.
+* `TODO.md` - The active step-by-step checklist of what needs to be built next.
 * `data/` - (Ignored in Git) Stores raw inference images, video datasets, and output visualizations.

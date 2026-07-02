@@ -12,11 +12,11 @@ def start_server(host='0.0.0.0', port=5005):
     server_socket.bind((host, port))
     server_socket.listen(1)
     
-    print(f"Waiting for CARLA teammate to connect to {host}:{port}...")
+    print(f"Waiting for simulator teammate to connect to {host}:{port}...")
     
     while True:
         conn, addr = server_socket.accept()
-        print(f"✅ CARLA Simulator connected from: {addr}")
+        print(f"✅ Simulator connected from: {addr}")
         
         try:
             while True:
@@ -64,15 +64,15 @@ def start_server(host='0.0.0.0', port=5005):
                     # Frame height is typically 600 or 720. Let's say if y2 > 400 it's close.
                     if closest_car_y > 400:
                         response_command = "BRAKE"
-                        print(f"🚨 Obstacle close (Y: {closest_car_y})! Sending BRAKE command to CARLA.")
+                        print(f"🚨 Obstacle close (Y: {closest_car_y})! Sending BRAKE command to simulator.")
                     else:
                         print("🟢 Path clear. Sending DRIVE command.")
                         
-                    # 5. Send command back to CARLA
+                    # 5. Send command back to the simulator
                     conn.sendall(response_command.encode('utf-8'))
-                    
+                
         except ConnectionResetError:
-            print("Connection to CARLA lost. Waiting for reconnect...")
+            print("Connection to simulator lost. Waiting for reconnect...")
         finally:
             conn.close()
             print("Client disconnected.")

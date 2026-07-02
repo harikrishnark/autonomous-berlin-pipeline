@@ -5,8 +5,8 @@ import time
 
 def mock_carla_camera(host='127.0.0.0', port=5005):
     """
-    Simulates the CARLA simulator by reading your Mac's webcam (or a video file)
-    and streaming it to the network_brain.py server over TCP.
+    Simulates the NVIDIA DRIVE simulator by reading your webcam (or a video file)
+    and streaming frames to the network_brain.py server over TCP.
     """
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     

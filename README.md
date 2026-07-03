@@ -34,10 +34,17 @@ All development is performed on a shared GPU VM. Both teammates SSH into the sam
 
 ### Connecting to the VM
 
-1. Log in to the selected GPU provider.
-2. Start the shared GPU VM.
-3. Connect with SSH or the provider web terminal.
-4. Clone this project under `~/autonomous-berlin-pipeline/`.
+The current shared simulation VM is a RunPod instance for Isaac Sim work.
+
+- SSH endpoint: `ssh 0vu2d5p6p2hbm7-644117ed@ssh.runpod.io -i ~/.ssh/id_ed25519`
+- Direct TCP fallback: `ssh root@157.157.221.29 -p 25316 -i ~/.ssh/id_ed25519`
+- Jupyter: port 8888 via the exposed RunPod proxied URL (use the token shown by the RunPod UI)
+- Isaac Sim viewer: `157.157.221.29:25315` (maps to container port `8211`)
+- WebRTC signaling: `157.157.221.29:25314` (maps to container port `49100`)
+
+1. Connect to the VM using the SSH command above.
+2. Clone this project under `~/autonomous-berlin-pipeline/`.
+3. Keep the Jupyter and streaming ports restricted to trusted access.
 
 ### First-Time VM Setup
 

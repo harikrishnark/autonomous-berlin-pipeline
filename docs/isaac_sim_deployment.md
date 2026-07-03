@@ -29,6 +29,19 @@ UDP 47998  WebRTC media stream
 TCP 8210   Browser viewer when using Docker Compose
 ```
 
+## Current RunPod Access Details
+
+The current shared VM is running on RunPod with the following access paths:
+
+```text
+SSH proxied endpoint: 0vu2d5p6p2hbm7-644117ed@ssh.runpod.io
+SSH direct TCP: root@157.157.221.29 -p 25316
+Jupyter port: 8888 via the proxied RunPod URL
+Viewer port: 157.157.221.29:25315 -> container 8211
+WebRTC signaling: 157.157.221.29:25314 -> container 49100
+WebSocket: 157.157.221.29:25318 -> container 8899
+```
+
 ## Setup Commands
 
 Install Docker:

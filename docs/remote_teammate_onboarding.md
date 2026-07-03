@@ -5,25 +5,29 @@ Use this file to onboard a teammate onto the shared GPU VM. Fill in the placehol
 ## Connection Details
 
 ```text
-Provider: <RUNPOD_OR_OTHER_PROVIDER>
-VM name: <VM_NAME>
-VM public IP: <VM_PUBLIC_IP>
-SSH user: <SSH_USER>
-SSH port: <SSH_PORT>
-SSH key path: <SSH_KEY_PATH>
+Provider: RunPod
+VM name: Pod #0vu2d5p6p2hbm7
+VM public IP: 157.157.221.29
+SSH endpoint: 0vu2d5p6p2hbm7-644117ed@ssh.runpod.io
+SSH direct TCP: root@157.157.221.29 -p 25316
+SSH key path: ~/.ssh/id_ed25519
 Project path on VM: ~/autonomous-berlin-pipeline
-Repository URL: <REPO_URL>
-Provider notes: <RUNPOD_OR_PROVIDER_NOTES>
+Repository URL: https://github.com/harikrishnark/autonomous-berlin-pipeline.git
+Provider notes: Jupyter is exposed on port 8888 through the proxied RunPod URL; keep the token private. Viewer and WebRTC ports are forwarded as listed below.
 ```
 
 ## SSH Command
 
 ```bash
-chmod 600 <SSH_KEY_PATH>
-ssh -i <SSH_KEY_PATH> -p <SSH_PORT> <SSH_USER>@<VM_PUBLIC_IP>
+chmod 600 ~/.ssh/id_ed25519
+ssh -i ~/.ssh/id_ed25519 0vu2d5p6p2hbm7-644117ed@ssh.runpod.io
 ```
 
-If the provider gives a complete SSH command, use that exact command and save it privately.
+Direct TCP fallback:
+
+```bash
+ssh -i ~/.ssh/id_ed25519 -p 25316 root@157.157.221.29
+```
 
 ## First Login Checklist
 

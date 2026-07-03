@@ -31,16 +31,31 @@ TCP 8210   Browser viewer when using Docker Compose
 
 ## Current RunPod Access Details
 
-The current shared VM is running on RunPod with the following access paths:
+The current shared VM is running on a standard RunPod PyTorch template with the following access paths:
 
 ```text
-SSH proxied endpoint: 0vu2d5p6p2hbm7-644117ed@ssh.runpod.io
-SSH direct TCP: root@157.157.221.29 -p 25316
-Jupyter port: 8888 via the proxied RunPod URL
-Viewer port: 157.157.221.29:25315 -> container 8211
-WebRTC signaling: 157.157.221.29:25314 -> container 49100
-WebSocket: 157.157.221.29:25318 -> container 8899
+SSH direct TCP (Primary): root@157.157.221.29 -p 25388
+SSH proxy endpoint: ntu0wjwdd0eb2p-644117ed@ssh.runpod.io
+Web terminal: Port 19123 via the proxied RunPod URL
 ```
+
+## Current Status and Continuation Notes (2026-07-03)
+
+The current cloud setup is no longer in a purely "pending install" state. The shared VM is reachable, the Isaac Sim runtime is launching, and the benchmark workflow completed successfully with visible performance output.
+
+Verified outcomes:
+- SSH access to the RunPod VM is working.
+- The Isaac Sim benchmark path completed remotely and emitted metrics including runtime, FPS, and app update details.
+- The simulator reached startup and shutdown phases without a basic GPU/runtime failure.
+
+Still open:
+- The WebRTC/livestream path has not yet produced a confirmed, viewable stream artifact from the remote VM.
+- Downloading the benchmark artifacts back to the local workspace is still the next practical step for documentation and demo handoff.
+
+Needed details to continue:
+- Whether the priority is a real Isaac Sim video export or a benchmark/metrics proof-of-life.
+- Whether the team wants a browser-based stream, a downloaded MP4, or a frame sequence.
+- Whether the current VM access path should be stabilized further or whether the fallback demo path is acceptable for now.
 
 ## Setup Commands
 

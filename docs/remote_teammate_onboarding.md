@@ -6,27 +6,29 @@ Use this file to onboard a teammate onto the shared GPU VM. Fill in the placehol
 
 ```text
 Provider: RunPod
-VM name: Pod #0vu2d5p6p2hbm7
+VM name: PyTorch Pod
 VM public IP: 157.157.221.29
-SSH endpoint: 0vu2d5p6p2hbm7-644117ed@ssh.runpod.io
-SSH direct TCP: root@157.157.221.29 -p 25316
+SSH proxy endpoint: ntu0wjwdd0eb2p-644117ed@ssh.runpod.io
+SSH direct TCP: root@157.157.221.29 -p 25388
 SSH key path: ~/.ssh/id_ed25519
-Project path on VM: ~/autonomous-berlin-pipeline
+Project path on VM: /workspace/autonomous-berlin-pipeline
 Repository URL: https://github.com/harikrishnark/autonomous-berlin-pipeline.git
-Provider notes: Jupyter is exposed on port 8888 through the proxied RunPod URL; keep the token private. Viewer and WebRTC ports are forwarded as listed below.
+Provider notes: Web terminal is exposed on port 19123 through the proxied RunPod URL.
 ```
 
 ## SSH Command
 
+Primary Direct TCP (Recommended for VS Code/Antigravity):
+
 ```bash
 chmod 600 ~/.ssh/id_ed25519
-ssh -i ~/.ssh/id_ed25519 0vu2d5p6p2hbm7-644117ed@ssh.runpod.io
+ssh -i ~/.ssh/id_ed25519 -p 25388 root@157.157.221.29
 ```
 
-Direct TCP fallback:
+Proxy fallback:
 
 ```bash
-ssh -i ~/.ssh/id_ed25519 -p 25316 root@157.157.221.29
+ssh -i ~/.ssh/id_ed25519 ntu0wjwdd0eb2p-644117ed@ssh.runpod.io
 ```
 
 ## First Login Checklist

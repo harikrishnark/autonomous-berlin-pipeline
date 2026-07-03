@@ -34,13 +34,11 @@ All development is performed on a shared GPU VM. Both teammates SSH into the sam
 
 ### Connecting to the VM
 
-The current shared simulation VM is a RunPod instance for Isaac Sim work.
+The current shared simulation VM is a RunPod PyTorch instance for Isaac Sim work.
 
-- SSH endpoint: `ssh 0vu2d5p6p2hbm7-644117ed@ssh.runpod.io -i ~/.ssh/id_ed25519`
-- Direct TCP fallback: `ssh root@157.157.221.29 -p 25316 -i ~/.ssh/id_ed25519`
-- Jupyter: port 8888 via the exposed RunPod proxied URL (use the token shown by the RunPod UI)
-- Isaac Sim viewer: `157.157.221.29:25315` (maps to container port `8211`)
-- WebRTC signaling: `157.157.221.29:25314` (maps to container port `49100`)
+- SSH endpoint: `ssh root@157.157.221.29 -p 25388 -i ~/.ssh/id_ed25519`
+- SSH proxy endpoint: `ssh ntu0wjwdd0eb2p-644117ed@ssh.runpod.io -i ~/.ssh/id_ed25519`
+- Web terminal: Port 19123 via the exposed RunPod proxied URL
 
 1. Connect to the VM using the SSH command above.
 2. Clone this project under `~/autonomous-berlin-pipeline/`.
@@ -62,6 +60,27 @@ python src/brain_perception.py
 
 See [implementation.md](./implementation.md) for the phased implementation plan.
 See [docs/isaac_sim_deployment.md](./docs/isaac_sim_deployment.md) for the finalized Isaac Sim VM deployment plan.
+
+---
+
+## Current Progress (2026-07-03)
+
+The shared Isaac Sim VM is reachable and the simulator runtime is functioning. A remote benchmark run completed successfully and reported a mean FPS of about 20.05 with the app startup sequence finishing normally.
+
+What is verified so far:
+- SSH access to the RunPod VM is working.
+- The Isaac Sim benchmark workflow completed remotely and produced benchmark metrics.
+- The remote shell reached the simulation startup and shutdown phases without a GPU/runtime crash.
+
+What is still pending:
+- A confirmed local download of the benchmark artifact files from the VM.
+- A working WebRTC/livestream export path for a real Isaac Sim video stream.
+- A decision on whether to continue troubleshooting the live stream or keep using the local fallback video generation path for the demo.
+
+Needed details to continue the conversation:
+- Preferred output artifact: benchmark report, image sequence, MP4, or live stream.
+- Preferred delivery method: direct download from the VM or browser-based streaming.
+- Whether the team wants to prioritize stream stability or move forward with the fallback demo path.
 
 ---
 

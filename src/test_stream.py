@@ -3,13 +3,13 @@ from isaacsim import SimulationApp
 # Boot Isaac Sim in headless mode
 simulation_app = SimulationApp({"headless": True})
 
-import omni.ext
+import omni.kit.app
 import time
 
 # 1. Enable WebRTC Streaming for Browser Viewer using the core extension manager
 print("Enabling WebRTC Stream...")
-ext_manager = omni.ext.get_extension_manager()
-ext_manager.enable_extension("omni.services.streamclient.webrtc")
+ext_manager = omni.kit.app.get_app().get_extension_manager()
+ext_manager.set_extension_enabled_immediate("omni.services.streamclient.webrtc", True)
 
 print("==================================================")
 print("Isaac Sim is running!")

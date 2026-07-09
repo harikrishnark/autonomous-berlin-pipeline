@@ -76,8 +76,6 @@ def create_scene():
     save_stage(usd_save_path)
     print(f"Scene saved to: {usd_save_path}")
 
-    world.reset()
-    
     print("Simulation scene is ready! You can now explore it in the GUI.")
     print("Press Ctrl+C in the terminal to exit, or close the window.")
     while simulation_app.is_running():

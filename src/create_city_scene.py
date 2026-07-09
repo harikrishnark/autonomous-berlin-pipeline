@@ -12,10 +12,10 @@ config = {"headless": args.headless}
 simulation_app = SimulationApp(config)
 
 import omni
-from omni.isaac.core import World
-from omni.isaac.core.objects import DynamicCuboid
-from omni.isaac.core.utils.stage import add_reference_to_stage, save_stage
-from omni.isaac.core.utils.prims import create_prim
+from isaacsim.core import World
+from isaacsim.core.objects import DynamicCuboid
+from isaacsim.core.utils.stage import add_reference_to_stage, save_stage
+from isaacsim.core.utils.prims import create_prim
 import numpy as np
 
 def create_scene():
@@ -27,7 +27,7 @@ def create_scene():
     
     # In Isaac Sim 6.0, assets are typically on the nucleus server. 
     # For a standalone script that runs locally, we can use the get_assets_root_path utility
-    from omni.isaac.core.utils.nucleus import get_assets_root_path
+    from isaacsim.core.utils.nucleus import get_assets_root_path
     assets_root_path = get_assets_root_path()
     if assets_root_path is None:
         print("Could not find Isaac Sim assets folder")

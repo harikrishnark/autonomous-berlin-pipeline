@@ -6,16 +6,16 @@ simulation_app = SimulationApp({"headless": True})
 import omni.kit.app
 import time
 
-# 1. Enable WebSocket Streaming for Browser Viewer using the core extension manager
-print("Enabling WebSocket Stream (TCP Mode)...")
+# 1. Enable WebRTC Streaming for Browser Viewer using the core extension manager
+print("Enabling WebRTC Stream (omni.kit.livestream.webrtc)...")
 ext_manager = omni.kit.app.get_app().get_extension_manager()
-ext_manager.set_extension_enabled_immediate("omni.services.streamclient.websocket", True)
+ext_manager.set_extension_enabled_immediate("omni.kit.livestream.webrtc", True)
 
 print("==================================================")
 print("Isaac Sim is running!")
 print("To view the stream over your VS Code SSH tunnel, go to:")
-print("http://localhost:8211/streaming/client/")
-print("(Make sure you have forwarded both ports 8211 AND 8844 in your IDE!)")
+print("http://localhost:8211/streaming/webrtc-client/")
+print("(Make sure you have forwarded port 8211 in your IDE!)")
 print("==================================================")
 
 # 2. Main Simulation Loop

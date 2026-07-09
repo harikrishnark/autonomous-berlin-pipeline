@@ -1,7 +1,7 @@
 import urllib.request
 import re
 
-url = "https://omniverse-content-production.s3-us-west-2.amazonaws.com/?prefix=Assets/Isaac/6.0/Isaac/"
+url = "https://omniverse-content-production.s3-us-west-2.amazonaws.com/?prefix=Assets/Isaac/6.0/"
 keys = []
 last_key = ""
 

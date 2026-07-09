@@ -1,10 +1,6 @@
 import urllib.request
 import re
 
-import urllib.request
-import re
-import xml.etree.ElementTree as ET
-
 url = "https://omniverse-content-production.s3-us-west-2.amazonaws.com/?prefix=Assets/Isaac/6.0/Isaac/"
 keys = []
 continuation_token = ""
@@ -14,27 +10,21 @@ while True:
     if continuation_token:
         fetch_url += f"&continuation-token={continuation_token}"
     
-    print(f"Fetching S3 page... {fetch_url[:80]}")
+    print(f"Fetching S3 page... token={continuation_token[:15] if continuation_token else 'None'}")
     try:
         req = urllib.request.Request(fetch_url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req) as response:
-            xml_data = response.read()
+            xml_data = response.read().decode('utf-8')
             
-        root = ET.fromstring(xml_data)
-        # S3 uses namespaces
-        ns = {'s3': 'http://s3.amazonaws.com/doc/2006-03-01/'}
+        page_keys = re.findall(r"<Key>([^<]+)</Key>", xml_data)
+        keys.extend(page_keys)
+        print(f"Added {len(page_keys)} keys. Total={len(keys)}")
         
-        for contents in root.findall('s3:Contents', ns):
-            key = contents.find('s3:Key', ns).text
-            keys.append(key)
-            
-        is_truncated = root.find('s3:IsTruncated', ns)
-        if is_truncated is not None and is_truncated.text == 'true':
-            next_token = root.find('s3:NextContinuationToken', ns)
-            if next_token is not None:
-                continuation_token = next_token.text
-            else:
-                break
+        is_truncated = "<IsTruncated>true</IsTruncated>" in xml_data
+        token_match = re.search(r"<NextContinuationToken>([^<]+)</NextContinuationToken>", xml_data)
+        
+        if is_truncated and token_match:
+            continuation_token = token_match.group(1)
         else:
             break
     except Exception as e:

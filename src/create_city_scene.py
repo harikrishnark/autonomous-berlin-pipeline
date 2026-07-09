@@ -38,7 +38,7 @@ def create_scene():
 
     # 1. Spawn a basic road / ground (using a generic grid for now if City isn't immediately available)
     # 2. Spawn Traffic Cones (SimReady)
-    cone_asset = assets_root_path + "/Isaac/Environments/Simple_Room/Props/traffic_cone.usd"
+    cone_asset = assets_root_path + "/Isaac/Environments/Simple_Warehouse/Props/S_TrafficCone.usd"
     
     for i in range(5):
         cone_path = f"/World/Construction/Cone_{i}"
@@ -48,20 +48,19 @@ def create_scene():
         print(f"Added cone {i}")
 
     # 3. Spawn a Barricade
-    barricade_asset = assets_root_path + "/Isaac/Environments/Simple_Room/Props/barrier.usd"
+    barricade_asset = assets_root_path + "/Isaac/SimReady/Industrial/Warehouse/Barriers/Barrier_Wall_Plastic_Orange_A03/sm_barrier_wall_plastic_orange_a03_01.usd"
     barricade_path = "/World/Construction/Barricade"
     add_reference_to_stage(usd_path=barricade_asset, prim_path=barricade_path)
     create_prim(barricade_path, translation=np.array([3.0, 3.0, 0.0]))
     
-    # 4. Spawn a Pedestrian
-    # We will use a standard human asset
-    pedestrian_asset = assets_root_path + "/Isaac/People/Characters/original_male_adult_police_03/original_male_adult_police_03.usd"
+    # 4. Spawn a Pedestrian (Construction worker matches the theme perfectly)
+    pedestrian_asset = assets_root_path + "/Isaac/People/Characters/original_male_adult_construction_01/male_adult_construction_01.usd"
     pedestrian_path = "/World/Pedestrians/Pedestrian_1"
     add_reference_to_stage(usd_path=pedestrian_asset, prim_path=pedestrian_path)
     create_prim(pedestrian_path, translation=np.array([0.0, -2.0, 0.0]))
 
     # 5. Spawn an Autonomous Vehicle
-    vehicle_asset = assets_root_path + "/Isaac/Robots/Carter/carter_v1.usd"
+    vehicle_asset = assets_root_path + "/Isaac/Robots/NVIDIA/Carter/carter_v1.usd"
     vehicle_path = "/World/Vehicle/Carter"
     add_reference_to_stage(usd_path=vehicle_asset, prim_path=vehicle_path)
     create_prim(vehicle_path, translation=np.array([-3.0, 0.0, 0.0]))

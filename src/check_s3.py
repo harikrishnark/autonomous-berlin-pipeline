@@ -15,7 +15,7 @@ while True:
     print(f"Fetching S3 page... marker={last_key[:25] if last_key else 'None'}")
     try:
         req = urllib.request.Request(fetch_url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, timeout=5) as response:
             xml_data = response.read().decode('utf-8')
             
         page_keys = re.findall(r"<Key>([^<]+)</Key>", xml_data)

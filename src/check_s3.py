@@ -10,26 +10,10 @@ try:
     
     print("S3 data retrieved! Searching for keys...")
     keys = re.findall(r"<Key>([^<]+)</Key>", xml)
-    
-    print("\n--- Cones ---")
-    for key in keys:
-        if "cone" in key.lower():
-            print(key)
-            
-    print("\n--- Barrier/Barricade ---")
-    for key in keys:
-        if "barrier" in key.lower() or "barricade" in key.lower():
-            print(key)
-            
-    print("\n--- Police/Pedestrian ---")
-    for key in keys:
-        if "police" in key.lower() or "character" in key.lower() or "people" in key.lower():
-            print(key)
-            
-    print("\n--- Carter/Robot ---")
-    for key in keys:
-        if "carter" in key.lower():
-            print(key)
+    print(f"Total keys found: {len(keys)}")
+    print("\nFirst 100 keys:")
+    for key in keys[:100]:
+        print(key)
 
 except Exception as e:
     print("Error:", e)

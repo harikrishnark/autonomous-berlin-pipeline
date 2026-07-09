@@ -75,11 +75,10 @@ def create_scene():
 
     world.reset()
     
-    print("Running simulation for a few frames...")
-    for _ in range(100):
+    print("Simulation scene is ready! You can now explore it in the GUI.")
+    print("Press Ctrl+C in the terminal to exit, or close the window.")
+    while simulation_app.is_running():
         world.step(render=True)
-        
-    print("Done!")
 
 if __name__ == "__main__":
     create_scene()

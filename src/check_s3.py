@@ -3,28 +3,31 @@ import re
 
 url = "https://omniverse-content-production.s3-us-west-2.amazonaws.com/?prefix=Assets/Isaac/6.0/Isaac/"
 keys = []
-continuation_token = ""
+last_key = ""
 
 while True:
     fetch_url = url
-    if continuation_token:
-        fetch_url += f"&continuation-token={continuation_token}"
+    if last_key:
+        # URL encode the marker (spaces to + or %20, slash to %2F, etc.)
+        import urllib.parse
+        fetch_url += f"&marker={urllib.parse.quote(last_key)}"
     
-    print(f"Fetching S3 page... token={continuation_token[:15] if continuation_token else 'None'}")
+    print(f"Fetching S3 page... marker={last_key[:25] if last_key else 'None'}")
     try:
         req = urllib.request.Request(fetch_url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req) as response:
             xml_data = response.read().decode('utf-8')
             
         page_keys = re.findall(r"<Key>([^<]+)</Key>", xml_data)
+        if not page_keys:
+            break
+            
         keys.extend(page_keys)
         print(f"Added {len(page_keys)} keys. Total={len(keys)}")
         
         is_truncated = "<IsTruncated>true</IsTruncated>" in xml_data
-        token_match = re.search(r"<NextContinuationToken>([^<]+)</NextContinuationToken>", xml_data)
-        
-        if is_truncated and token_match:
-            continuation_token = token_match.group(1)
+        if is_truncated:
+            last_key = page_keys[-1]
         else:
             break
     except Exception as e:

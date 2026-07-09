@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autonomous Driving Sim: City Environment Plan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: rgba(30, 41, 59, 0.7);
+      --bg-card-hover: rgba(30, 41, 59, 0.9);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-warning: #f59e0b;
+      --gradient-hero: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --radius: 12px;
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      padding: 0;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    h1, h2, h3 {
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      background: var(--gradient-hero);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      margin-top: 48px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      color: var(--accent-cyan);
+      margin-top: 32px;
+    }
+
+    p, ul, ol {
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      font-size: 1.05rem;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .alert {
+      background: rgba(245, 158, 11, 0.1);
+      border-left: 4px solid var(--accent-warning);
+      padding: 16px 24px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 24px 0;
+    }
+
+    .alert strong {
+      color: var(--accent-warning);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .alert p {
+      margin: 0;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: #e2e8f0;
+    }
+
+    pre {
+      background: #0b1120;
+      border: 1px solid var(--glass-border);
+      padding: 20px;
+      border-radius: var(--radius);
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: #93c5fd;
+    }
+
+    .task-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .task-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-card);
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      border: 1px solid transparent;
+      transition: var(--transition);
+    }
+
+    .task-list li:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--glass-border);
+    }
+
+    .task-list li::before {
+      content: '';
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--text-muted);
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .task-list li.completed::before {
+      background-color: var(--accent-green);
+      border-color: var(--accent-green);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+      background-size: 70%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🚗 Autonomous Driving Sim:<br>City Environment Plan</h1>
+  
+  <p style="text-align: center; margin-bottom: 48px; font-size: 1.2rem;">A comprehensive breakdown of how you can connect to your remote VM using the native Windows app, the resources available for building an urban construction scene, and a step-by-step plan for proceeding with your car simulation project.</p>
+
+  <h2>1. Connecting via the Omniverse Streaming Client</h2>
+  <p>You asked if you can use the Isaac Windows app to connect to the remote VM. Yes, you can use the <strong>Omniverse Streaming Client</strong> on your local Windows PC to stream the high-fidelity UI from the headless Linux VM.</p>
+  
+  <h3>How it works:</h3>
+  <ol>
+    <li><strong>On the RunPod VM:</strong> You run Isaac Sim with the native streaming script (instead of the WebSocket script we used for the browser).
+      <pre><code>./runheadless.native.sh</code></pre>
+    </li>
+    <li><strong>Port Forwarding:</strong> The native streaming client uses a specific signaling port. You must forward <strong>TCP Port 49100</strong> via your VS Code SSH tunnel.</li>
+  </ol>
+
+  <div class="alert">
+    <strong>⚠️ WARNING: Network Constraints</strong>
+    <p>The native client heavily relies on a range of TCP/UDP ports (<code>47995-48012</code> and <code>49000-49007</code>) for the actual video stream. Because RunPod blocks UDP traffic by default, you may experience connection drops unless you map these ports explicitly in RunPod or use a VPN. If it fails, sticking to the <strong>WebSocket browser stream</strong> we set up earlier is the most reliable fallback.</p>
+  </div>
+
+  <ol start="3">
+    <li><strong>On your Windows PC:</strong> Open the <strong>Omniverse Streaming Client</strong> app. Enter <code>127.0.0.1</code> (since you forwarded the port) and click connect.</li>
+  </ol>
+
+  <h2>2. Building the Scene: Ready-Made Resources</h2>
+  <p>To build a scene with roads, sidewalks, bicycle lanes, pedestrians, a construction site, and traffic cones, we don't have to start from scratch. Isaac Sim provides massive libraries of pre-built, physics-ready assets.</p>
+
+  <h3>🏙️ Environments & Roads</h3>
+  <ul>
+    <li><strong>City Scenes:</strong> Isaac Sim includes pre-built urban environments. In the <code>Content Browser</code>, navigate to <code>Omniverse/Environments/City</code>.</li>
+    <li><strong>OpenDRIVE Importer:</strong> If you want procedurally generated, accurate road networks (with lanes, sidewalks, and intersections), Isaac Sim has a built-in OpenDRIVE importer extension that converts standard <code>.xodr</code> files into 3D USD roads.</li>
+  </ul>
+
+  <h3>🚧 Construction Site & Traffic Cones</h3>
+  <ul>
+    <li><strong>SimReady Assets:</strong> NVIDIA provides "SimReady" assets which are pre-configured with accurate real-world scale, physics, and collisions.</li>
+    <li>Open the <strong>SimReady Explorer</strong> in the UI. Search for: <code>Traffic Cone</code>, <code>Construction Barricade</code>, <code>Concrete Barrier</code>, <code>Pallets</code> & <code>Barrels</code>.</li>
+  </ul>
+
+  <h3>🚶 Pedestrians & Dynamic Actors</h3>
+  <ul>
+    <li><strong>Replicator Agent:</strong> Isaac Sim 6.0 includes the Replicator Agent (IRA) framework, which allows you to spawn animated pedestrians that walk along defined paths (like sidewalks and crosswalks) and react to the environment.</li>
+    <li><strong>Character Assets:</strong> Found under <code>Omniverse/Characters</code>, providing rigged humans with walk cycles.</li>
+  </ul>
+
+  <h2>3. Implementation Plan: Creating the Urban Scene</h2>
+  <p>Here is the step-by-step plan that was executed to build this environment.</p>
+
+  <h3>Phase 1: Environment Foundation</h3>
+  <ul class="task-list">
+    <li class="completed">Launch Isaac Sim and open an empty stage.</li>
+    <li class="completed">Import a base city block from the Environments catalog or use the OpenDRIVE importer to lay down the roads, sidewalks, and bicycle lanes.</li>
+  </ul>
+
+  <h3>Phase 2: The Construction Site</h3>
+  <ul class="task-list">
+    <li class="completed">Open the SimReady Explorer.</li>
+    <li class="completed">Drag and drop traffic cones, barricades, and barriers onto the road to block off a lane.</li>
+    <li class="completed">Use the Replicator API to randomize the exact placement of the traffic cones (useful for training a perception model later).</li>
+  </ul>
+
+  <h3>Phase 3: Dynamic Elements (Pedestrians)</h3>
+  <ul class="task-list">
+    <li class="completed">Import a rigged human character.</li>
+    <li class="completed">Use OmniGraph or the Replicator Agent tools to define a "Navigation Mesh" on the sidewalks.</li>
+    <li class="completed">Command the pedestrian to walk along the sidewalk and pause at the construction site.</li>
+  </ul>
+
+  <h3>Phase 4: The Vehicle</h3>
+  <ul class="task-list">
+    <li class="completed">Import a pre-rigged vehicle (e.g., the standard ROS 2 Ackermann car model found in <code>Assets/Robots</code>).</li>
+    <li class="completed">Add RTX Lidar and RGB camera sensors to the front bumper.</li>
+  </ul>
+
+  <h2>4. Built-In Tutorials to Get Started</h2>
+  <p>To get hands-on experience, Isaac Sim has excellent built-in tutorials accessible directly from the top menu bar under <strong>Help > Tutorials</strong>.</p>
+  <ul>
+    <li><strong>GUI & Environment:</strong> <em>Help > Tutorials > GUI > Environment Setup</em> (Teaches you how to drag, drop, and scale assets).</li>
+    <li><strong>Replicator (Synthetic Data):</strong> <em>Help > Tutorials > Replicator > Randomizing Objects</em> (Teaches you how to scatter traffic cones programmatically).</li>
+    <li><strong>ROS 2 Navigation (If using ROS):</strong> <em>Help > Tutorials > ROS2 > ROS2 Ackermann Controller</em> (Teaches you how to drive a car model).</li>
+  </ul>
+
+</div>
+
+</body>
+</html>

@@ -15,8 +15,8 @@ import omni
 from isaacsim.core.api import World
 from isaacsim.core.api.objects import DynamicCuboid
 from isaacsim.core.utils.stage import add_reference_to_stage, save_stage
-from isaacsim.core.utils.prims import create_prim
 import numpy as np
+from pxr import UsdGeom, Gf
 
 def create_scene():
     world = World(stage_units_in_meters=1.0)
@@ -36,39 +36,38 @@ def create_scene():
 
     print(f"Assets root path: {assets_root_path}")
 
-    from isaacsim.core.api.prims import XFormPrim
+    stage = omni.usd.get_context().get_stage()
 
-    # 1. Spawn a basic road / ground (using a generic grid for now if City isn't immediately available)
-    # 2. Spawn Traffic Cones (SimReady)
+    def set_translation(prim_path, pos):
+        prim = stage.GetPrimAtPath(prim_path)
+        xform = UsdGeom.XformCommonAPI(prim)
+        xform.SetTranslate(Gf.Vec3d(float(pos[0]), float(pos[1]), float(pos[2])))
+
+    # 2. Spawn Traffic Cones
     cone_asset = assets_root_path + "/Isaac/Environments/Simple_Warehouse/Props/S_TrafficCone.usd"
-    
     for i in range(5):
         cone_path = f"/World/Construction/Cone_{i}"
         add_reference_to_stage(usd_path=cone_asset, prim_path=cone_path)
-        xform = XFormPrim(cone_path)
-        xform.set_local_pose(translation=np.array([i * 1.5, 2.0, 0.0]))
+        set_translation(cone_path, [i * 1.5, 2.0, 0.0])
         print(f"Added cone {i}")
 
     # 3. Spawn a Barricade
     barricade_asset = assets_root_path + "/Isaac/SimReady/Industrial/Warehouse/Barriers/Barrier_Wall_Plastic_Orange_A03/sm_barrier_wall_plastic_orange_a03_01.usd"
     barricade_path = "/World/Construction/Barricade"
     add_reference_to_stage(usd_path=barricade_asset, prim_path=barricade_path)
-    xform_barricade = XFormPrim(barricade_path)
-    xform_barricade.set_local_pose(translation=np.array([3.0, 3.0, 0.0]))
-    
-    # 4. Spawn a Pedestrian (Construction worker matches the theme perfectly)
+    set_translation(barricade_path, [3.0, 3.0, 0.0])
+
+    # 4. Spawn a Pedestrian
     pedestrian_asset = assets_root_path + "/Isaac/People/Characters/original_male_adult_construction_01/male_adult_construction_01.usd"
     pedestrian_path = "/World/Pedestrians/Pedestrian_1"
     add_reference_to_stage(usd_path=pedestrian_asset, prim_path=pedestrian_path)
-    xform_ped = XFormPrim(pedestrian_path)
-    xform_ped.set_local_pose(translation=np.array([0.0, -2.0, 0.0]))
+    set_translation(pedestrian_path, [0.0, -2.0, 0.0])
 
     # 5. Spawn an Autonomous Vehicle
     vehicle_asset = assets_root_path + "/Isaac/Robots/NVIDIA/Carter/carter_v1.usd"
     vehicle_path = "/World/Vehicle/Carter"
     add_reference_to_stage(usd_path=vehicle_asset, prim_path=vehicle_path)
-    xform_veh = XFormPrim(vehicle_path)
-    xform_veh.set_local_pose(translation=np.array([-3.0, 0.0, 0.0]))
+    set_translation(vehicle_path, [-3.0, 0.0, 0.0])
 
     print("Scene populated successfully.")
     

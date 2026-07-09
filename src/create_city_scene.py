@@ -14,7 +14,7 @@ simulation_app = SimulationApp(config)
 import omni
 from isaacsim.core.api import World
 from isaacsim.core.api.objects import DynamicCuboid
-from isaacsim.core.utils.stage import add_reference_to_stage, save_stage
+from isaacsim.core.utils.stage import add_reference_to_stage
 import numpy as np
 from pxr import UsdGeom, Gf
 
@@ -73,7 +73,7 @@ def create_scene():
     
     # Save the USD file locally so it can be opened easily
     usd_save_path = "/workspace/autonomous-berlin-pipeline/urban_construction_scene.usd"
-    save_stage(usd_save_path)
+    stage.Export(usd_save_path)
     print(f"Scene saved to: {usd_save_path}")
 
     print("Simulation scene is ready! You can now explore it in the GUI.")

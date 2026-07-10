@@ -145,7 +145,7 @@ def create_scene():
                 
         # Apply velocity to wheels
         if left_wheel_idx is not None and right_wheel_idx is not None:
-            carter.set_joint_velocity_targets([target_vel, target_vel], joint_indices=[left_wheel_idx, right_wheel_idx])
+            carter.set_joint_velocities([target_vel, target_vel], joint_indices=[left_wheel_idx, right_wheel_idx])
 
     print("Simulation finished. Saving video...")
     video_writer.release()

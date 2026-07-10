@@ -81,6 +81,7 @@ def create_scene():
         resolution=(640, 480),
         orientation=np.array([0.5, -0.5, 0.5, -0.5]) # Looking forward
     )
+    camera.initialize()
     
     print("Scene populated successfully.")
     
@@ -95,7 +96,6 @@ def create_scene():
         print("⚠️ AI Brain not running (network_brain.py). Simulation will run without perception control.")
 
     world.reset()
-    camera.initialize()
 
     # Find wheel joints to apply velocity
     left_wheel_idx = carter.get_dof_index("left_wheel")

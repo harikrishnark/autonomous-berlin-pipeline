@@ -103,9 +103,9 @@ def create_scene():
 
     print("Simulation scene is ready! You can now explore it in the GUI.")
     print("Press Ctrl+C in the terminal to exit, or close the window.")
-    video_writer = cv2.VideoWriter('/workspace/autonomous-berlin-pipeline/simulation_output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 20, (640, 480))
+    video_writer = cv2.VideoWriter('/workspace/autonomous-berlin-pipeline/simulation_output.avi', cv2.VideoWriter_fourcc(*'MJPG'), 20, (640, 480))
     frame_count = 0
-    max_frames = 300
+    max_frames = 200
     
     while frame_count < max_frames:
         world.step(render=True)

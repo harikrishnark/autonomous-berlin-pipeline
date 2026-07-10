@@ -83,8 +83,6 @@ def create_scene():
     )
     camera.initialize()
     
-    print("Scene populated successfully.")
-    
     # 6. Initialize Socket Connection to network_brain.py
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     socket_connected = False
@@ -96,6 +94,7 @@ def create_scene():
         print("⚠️ AI Brain not running (network_brain.py). Simulation will run without perception control.")
 
     world.reset()
+    camera.initialize()
 
     # Find wheel joints to apply velocity
     left_wheel_idx = carter.get_dof_index("left_wheel")

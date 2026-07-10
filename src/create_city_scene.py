@@ -81,7 +81,6 @@ def create_scene():
         resolution=(640, 480),
         orientation=np.array([0.5, -0.5, 0.5, -0.5]) # Looking forward
     )
-    camera.initialize()
     
     print("Scene populated successfully.")
     
@@ -96,6 +95,7 @@ def create_scene():
         print("⚠️ AI Brain not running (network_brain.py). Simulation will run without perception control.")
 
     world.reset()
+    camera.initialize()
 
     # Find wheel joints to apply velocity
     left_wheel_idx = carter.get_dof_index("left_wheel")
@@ -150,6 +150,8 @@ def create_scene():
                     color = (128, 128, 128)
                 cv2.putText(frame, f"AI Command: {response}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
                 video_writer.write(frame)
+            else:
+                print("Warning: camera.get_rgba() returned empty or None data.")
         except Exception as e:
             print(f"Camera/Video error: {e}")
                 

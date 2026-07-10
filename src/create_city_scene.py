@@ -20,7 +20,8 @@ from pxr import UsdGeom, Gf
 
 def create_scene():
     world = World(stage_units_in_meters=1.0)
-    world.scene.add_default_ground_plane()
+    # Remove the generic ground plane, we will load a full environment
+    # world.scene.add_default_ground_plane()
 
     # Base Paths for NVIDIA Isaac Sim Assets
     NUCLEUS_SERVER = "omniverse://localhost/NVIDIA/Assets/Isaac/4.0" # Fallback/generic path format
@@ -42,6 +43,12 @@ def create_scene():
         prim = stage.GetPrimAtPath(prim_path)
         xform = UsdGeom.XformCommonAPI(prim)
         xform.SetTranslate(Gf.Vec3d(float(pos[0]), float(pos[1]), float(pos[2])))
+
+    # 1. Spawn a full environment
+    env_asset = assets_root_path + "/Isaac/Environments/Simple_Warehouse/warehouse.usd"
+    env_path = "/World/Environment"
+    add_reference_to_stage(usd_path=env_asset, prim_path=env_path)
+    print("Added full environment")
 
     # 2. Spawn Traffic Cones
     cone_asset = assets_root_path + "/Isaac/Environments/Simple_Warehouse/Props/S_TrafficCone.usd"

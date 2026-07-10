@@ -16,13 +16,13 @@ config = {"headless": args.headless}
 simulation_app = SimulationApp(config)
 
 import omni
-from isaacsim.core.api import World
-from isaacsim.core.utils.stage import add_reference_to_stage
+from omni.isaac.core import World
+from omni.isaac.core.utils.stage import add_reference_to_stage
 from pxr import UsdGeom, Gf
 
 # For robot and camera
-from isaacsim.core.api.articulations import Articulation
-from isaacsim.sensor import Camera
+from omni.isaac.core.articulations import Articulation
+from omni.isaac.sensor import Camera
 
 def create_scene():
     world = World(stage_units_in_meters=1.0)

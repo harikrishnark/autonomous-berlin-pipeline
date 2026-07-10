@@ -148,6 +148,7 @@ def create_scene():
                 if not socket_connected:
                     response = "NO AI"
                     color = (128, 128, 128)
+                frame = cv2.resize(frame, (640, 480))
                 cv2.putText(frame, f"AI Command: {response}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
                 video_writer.write(frame)
             else:

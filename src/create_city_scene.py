@@ -158,7 +158,9 @@ def create_scene():
             else:
                 print("Warning: camera.get_rgba() returned empty or None data.")
         except Exception as e:
-            print(f"Camera/Video error: {e}")
+            import traceback
+            print(f"Camera/Video error at frame {frame_count}: {e}")
+            traceback.print_exc()
                 
         # Apply velocity to wheels
         if left_wheel_idx is not None and right_wheel_idx is not None:

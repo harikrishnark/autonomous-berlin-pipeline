@@ -103,12 +103,17 @@ def create_scene():
 
     print("Simulation scene is ready! You can now explore it in the GUI.")
     print("Press Ctrl+C in the terminal to exit, or close the window.")
+    video_writer = cv2.VideoWriter('/workspace/autonomous-berlin-pipeline/simulation_output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 20, (640, 480))
+    frame_count = 0
+    max_frames = 300
     
-    while simulation_app.is_running():
+    while simulation_app.is_running() and frame_count < max_frames:
         world.step(render=True)
+        frame_count += 1
         
         # Default behavior: DRIVE
         target_vel = 15.0
+        response = "DRIVE"
         
         if socket_connected:
             try:
@@ -129,6 +134,11 @@ def create_scene():
                     response = client_socket.recv(1024).decode('utf-8')
                     if response == "BRAKE":
                         target_vel = 0.0
+                        
+                    # Add Text Overlay & Write to Video
+                    color = (0, 0, 255) if response == "BRAKE" else (0, 255, 0)
+                    cv2.putText(frame, f"AI Command: {response}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
+                    video_writer.write(frame)
             except Exception as e:
                 print(f"Socket error: {e}")
                 socket_connected = False
@@ -136,6 +146,10 @@ def create_scene():
         # Apply velocity to wheels
         if left_wheel_idx is not None and right_wheel_idx is not None:
             carter.set_joint_velocity_targets([target_vel, target_vel], joint_indices=[left_wheel_idx, right_wheel_idx])
+
+    print("Simulation finished. Saving video...")
+    video_writer.release()
+    print("Video saved to /workspace/autonomous-berlin-pipeline/simulation_output.mp4")
 
 if __name__ == "__main__":
     create_scene()

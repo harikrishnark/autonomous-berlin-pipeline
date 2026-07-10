@@ -1,64 +1,104 @@
-# Remote Teammate Onboarding
+# Remote Teammate Onboarding (Hari)
 
-Use this file to onboard a teammate onto the shared GPU VM. Fill in the placeholders out-of-band through a private channel. Do not commit private keys, tokens, passwords, or provider secrets.
+Welcome to the shared autonomous driving pipeline project! This guide will get you connected to our cloud GPU VM and help you launch NVIDIA Isaac Sim so you can start contributing.
 
-## Connection Details
+## 1. Add Your SSH Key to RunPod
 
+You'll need to generate an SSH key and add it to our shared RunPod account to access the VM.
+
+### Generate Key (Mac/Linux)
+Open your Terminal and run:
+```bash
+ssh-keygen -t ed25519 -C "hari-autonomous-berlin" -f ~/.ssh/id_ed25519
+```
+*(Press Enter twice to skip the passphrase).*
+
+### Copy Public Key
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+*(Copy the entire output starting with `ssh-ed25519 AAAA...`)*
+
+### Add to RunPod
+1. Go to [RunPod SSH Settings](https://console.runpod.io/user/settings) and log in.
+2. Scroll down to **"SSH public keys"**.
+3. Paste your public key **on a new line** (do not delete existing keys).
+4. Click **"Update public key"**.
+
+---
+
+## 2. Connect to the Shared VM
+
+We are using a single, shared Ubuntu 22.04 VM with an NVIDIA GPU. 
+
+### SSH Connection Details
 ```text
 Provider: RunPod
-VM name: PyTorch Pod
 VM public IP: 157.157.221.29
-SSH proxy endpoint: ntu0wjwdd0eb2p-644117ed@ssh.runpod.io
-SSH direct TCP: root@157.157.221.29 -p 25388
-SSH key path: ~/.ssh/id_ed25519
-Project path on VM: /workspace/autonomous-berlin-pipeline
-Repository URL: https://github.com/harikrishnark/autonomous-berlin-pipeline.git
-Provider notes: Web terminal is exposed on port 19123 through the proxied RunPod URL.
+Port: 25388
+Project path: /workspace/autonomous-berlin-pipeline
 ```
 
-## SSH Command
-
-Primary Direct TCP (Recommended for VS Code/Antigravity):
-
+### Connect via Terminal
+Run this command to SSH into the VM:
 ```bash
-chmod 600 ~/.ssh/id_ed25519
 ssh -i ~/.ssh/id_ed25519 -p 25388 root@157.157.221.29
 ```
 
-Proxy fallback:
+*(Fallback Proxy: `ssh -i ~/.ssh/id_ed25519 ntu0wjwdd0eb2p-644117ed@ssh.runpod.io`)*
 
+### Verify Connection
+Once logged in, verify the GPU is accessible:
 ```bash
-ssh -i ~/.ssh/id_ed25519 ntu0wjwdd0eb2p-644117ed@ssh.runpod.io
-```
-
-## First Login Checklist
-
-```bash
-hostname
 nvidia-smi
-docker --version
-docker ps
 ```
 
-Confirm that the GPU is visible before starting Isaac Sim or any training/inference process.
+---
 
-## Project Setup
+## 3. Starting NVIDIA Isaac Sim
 
+Isaac Sim is our simulation environment. It runs in a Docker container on the VM and streams its interface to your local web browser.
+
+### Step 3a: Launch the Container
+SSH into the VM and run the following command to start the container interactively:
 ```bash
-cd ~
-git clone <REPO_URL> autonomous-berlin-pipeline
-cd autonomous-berlin-pipeline
-
-python3 -m venv venv
-source venv/bin/activate
-pip install ultralytics opencv-python torch
-
-python src/brain_perception.py
+docker run --name isaac-sim --entrypoint bash -it --gpus all \
+  -e "ACCEPT_EULA=Y" \
+  -e "PRIVACY_CONSENT=Y" \
+  --rm --network=host \
+  -v ~/docker/isaac-sim/cache/main:/isaac-sim/.cache:rw \
+  -v ~/docker/isaac-sim/cache/computecache:/isaac-sim/.nv/ComputeCache:rw \
+  -v ~/docker/isaac-sim/logs:/isaac-sim/.nvidia-omniverse/logs:rw \
+  -v ~/docker/isaac-sim/config:/isaac-sim/.nvidia-omniverse/config:rw \
+  -v ~/docker/isaac-sim/data:/isaac-sim/.local/share/ov/data:rw \
+  -v ~/docker/isaac-sim/pkg:/isaac-sim/.local/share/ov/pkg:rw \
+  -v ~/.cache/ov/hub:/var/cache/hub:rw \
+  -u 1234:1234 \
+  nvcr.io/nvidia/isaac-sim:6.0.0
 ```
 
-If the repo is private, configure GitHub SSH access, HTTPS credentials, or a deploy key before cloning.
+### Step 3b: Start the Stream
+Inside the container terminal, run:
+```bash
+PUBLIC_IP=$(curl -s ifconfig.me)
+./runheadless.sh \
+  --/app/livestream/publicEndpointAddress=$PUBLIC_IP \
+  --/app/livestream/port=49100
+```
+Wait until you see: `Isaac Sim Full Streaming App is loaded.`
 
-If the repo already exists on the VM:
+### Step 3c: Connect from your Browser
+1. Open your web browser locally.
+2. Download or open the [NVIDIA Omniverse WebRTC Viewer](https://docs.omniverse.nvidia.com/isaacsim/latest/installation/manual_livestream_webrtc.html).
+3. Connect using:
+   - **Server:** `157.157.221.29`
+   - **Port:** `49100`
+
+---
+
+## 4. Working with the Project Code
+
+The repository is already cloned on the VM. 
 
 ```bash
 cd ~/autonomous-berlin-pipeline
@@ -66,45 +106,9 @@ git pull
 source venv/bin/activate
 ```
 
-## Isaac Sim Access Notes
-
-Isaac Sim is expected to run inside the NVIDIA container:
-
-```bash
-docker pull nvcr.io/nvidia/isaac-sim:6.0.0
-```
-
-Required streaming ports:
-
-```text
-TCP 49100  WebRTC signaling
-UDP 47998  WebRTC media stream
-TCP 8210   Browser viewer, if using Docker Compose
-```
-
-Restrict these ports to trusted IPs whenever the provider supports firewall rules.
-
-After Isaac Sim is running headless, connect with the Isaac Sim WebRTC Streaming Client or browser viewer:
-
-```text
-Server/IP: <VM_PUBLIC_IP>
-Port: 49100
-```
-
-Wait until the Isaac Sim logs say the streaming app is loaded before connecting.
+From here, you can run the perception scripts or work on the ROS 2 integration. 
 
 ## Team Rules
-
-- Do not commit private SSH keys, API tokens, RunPod credentials, or NVIDIA NGC credentials.
-- Shut down the VM when nobody is actively working.
+- Shut down the VM when nobody is actively working to save credits.
 - Announce before stopping containers or rebooting the VM.
-- Pull before editing and push after a working milestone.
-- Keep large datasets, videos, and simulator cache files out of Git unless explicitly needed.
-- Rotate credentials immediately if a key or token is accidentally shared.
-
-## Useful Project Docs
-
-- `README.md`: project overview and portfolio positioning
-- `implementation.md`: phased roadmap
-- `TODO.md`: active checklist
-- `docs/isaac_sim_deployment.md`: Isaac Sim VM/container deployment plan
+- Keep large datasets and videos out of Git.

@@ -117,32 +117,41 @@ def create_scene():
         response = "DRIVE"
         
         if socket_connected:
-            try:
-                # Capture image from camera
-                img_data = camera.get_rgba()
-                if img_data is not None and img_data.shape[0] > 0:
-                    # Convert RGBA to RGB
-                    frame = img_data[:, :, :3].astype(np.uint8)
-                    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-                    
-                    # Compress and send
-                    _, encoded = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
-                    data = encoded.tobytes()
-                    client_socket.sendall(struct.pack('<I', len(data)))
-                    client_socket.sendall(data)
-                    
-                    # Receive response
-                    response = client_socket.recv(1024).decode('utf-8')
-                    if response == "BRAKE":
-                        target_vel = 0.0
+            pass # We fetch frame below regardless
+
+        # Capture image from camera
+        try:
+            img_data = camera.get_rgba()
+            if img_data is not None and img_data.shape[0] > 0:
+                # Convert RGBA to RGB
+                frame = img_data[:, :, :3].astype(np.uint8)
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                
+                if socket_connected:
+                    try:
+                        # Compress and send
+                        _, encoded = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+                        data = encoded.tobytes()
+                        client_socket.sendall(struct.pack('<I', len(data)))
+                        client_socket.sendall(data)
                         
-                    # Add Text Overlay & Write to Video
-                    color = (0, 0, 255) if response == "BRAKE" else (0, 255, 0)
-                    cv2.putText(frame, f"AI Command: {response}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
-                    video_writer.write(frame)
-            except Exception as e:
-                print(f"Socket error: {e}")
-                socket_connected = False
+                        # Receive response
+                        response = client_socket.recv(1024).decode('utf-8')
+                        if response == "BRAKE":
+                            target_vel = 0.0
+                    except Exception as e:
+                        print(f"Socket error: {e}")
+                        socket_connected = False
+                        
+                # Add Text Overlay & Write to Video
+                color = (0, 0, 255) if response == "BRAKE" else (0, 255, 0)
+                if not socket_connected:
+                    response = "NO AI"
+                    color = (128, 128, 128)
+                cv2.putText(frame, f"AI Command: {response}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
+                video_writer.write(frame)
+        except Exception as e:
+            print(f"Camera/Video error: {e}")
                 
         # Apply velocity to wheels
         if left_wheel_idx is not None and right_wheel_idx is not None:

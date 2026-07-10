@@ -1,5 +1,9 @@
 import argparse
 import sys
+import socket
+import struct
+import cv2
+import numpy as np
 
 # Start the Isaac Sim application before importing any core modules
 from isaacsim import SimulationApp
@@ -13,21 +17,17 @@ simulation_app = SimulationApp(config)
 
 import omni
 from isaacsim.core.api import World
-from isaacsim.core.api.objects import DynamicCuboid
 from isaacsim.core.utils.stage import add_reference_to_stage
-import numpy as np
 from pxr import UsdGeom, Gf
+
+# For robot and camera
+from isaacsim.core.api.articulations import Articulation
+from isaacsim.sensor import Camera
 
 def create_scene():
     world = World(stage_units_in_meters=1.0)
-    # Remove the generic ground plane, we will load a full environment
-    # world.scene.add_default_ground_plane()
 
     # Base Paths for NVIDIA Isaac Sim Assets
-    NUCLEUS_SERVER = "omniverse://localhost/NVIDIA/Assets/Isaac/4.0" # Fallback/generic path format
-    
-    # In Isaac Sim 6.0, assets are typically on the nucleus server. 
-    # For a standalone script that runs locally, we can use the get_assets_root_path utility
     from isaacsim.storage.native import get_assets_root_path
     assets_root_path = get_assets_root_path()
     if assets_root_path is None:
@@ -36,7 +36,6 @@ def create_scene():
         sys.exit()
 
     print(f"Assets root path: {assets_root_path}")
-
     stage = omni.usd.get_context().get_stage()
 
     def set_translation(prim_path, pos):
@@ -58,35 +57,85 @@ def create_scene():
         set_translation(cone_path, [i * 1.5, 2.0, 0.0])
         print(f"Added cone {i}")
 
-    # 3. Spawn a Barricade
-    barricade_asset = assets_root_path + "/Isaac/SimReady/Industrial/Warehouse/Barriers/Barrier_Wall_Plastic_Orange_A03/sm_barrier_wall_plastic_orange_a03_01.usd"
-    barricade_path = "/World/Construction/Barricade"
-    add_reference_to_stage(usd_path=barricade_asset, prim_path=barricade_path)
-    set_translation(barricade_path, [3.0, 3.0, 0.0])
-
-    # 4. Spawn a Pedestrian
+    # 3. Spawn a Pedestrian
     pedestrian_asset = assets_root_path + "/Isaac/People/Characters/original_male_adult_construction_01/male_adult_construction_01.usd"
     pedestrian_path = "/World/Pedestrians/Pedestrian_1"
     add_reference_to_stage(usd_path=pedestrian_asset, prim_path=pedestrian_path)
-    set_translation(pedestrian_path, [0.0, -2.0, 0.0])
+    set_translation(pedestrian_path, [2.0, 0.0, 0.0])
 
-    # 5. Spawn an Autonomous Vehicle
+    # 4. Spawn an Autonomous Vehicle (Carter)
     vehicle_asset = assets_root_path + "/Isaac/Robots/NVIDIA/Carter/carter_v1.usd"
     vehicle_path = "/World/Vehicle/Carter"
     add_reference_to_stage(usd_path=vehicle_asset, prim_path=vehicle_path)
     set_translation(vehicle_path, [-3.0, 0.0, 0.0])
+    
+    carter = Articulation(prim_path=vehicle_path, name="carter")
+    world.scene.add(carter)
 
+    # 5. Add a Camera to Carter
+    camera_path = "/World/Vehicle/Carter/chassis_link/Camera"
+    camera = Camera(
+        prim_path=camera_path,
+        position=np.array([0.5, 0.0, 0.5]),
+        frequency=20,
+        resolution=(640, 480),
+        orientation=np.array([0.5, -0.5, 0.5, -0.5]) # Looking forward
+    )
+    camera.initialize()
+    
     print("Scene populated successfully.")
     
-    # Save the USD file locally so it can be opened easily
-    usd_save_path = "/workspace/autonomous-berlin-pipeline/urban_construction_scene.usd"
-    stage.Export(usd_save_path)
-    print(f"Scene saved to: {usd_save_path}")
+    # 6. Initialize Socket Connection to network_brain.py
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_connected = False
+    try:
+        client_socket.connect(('127.0.0.1', 5005))
+        print("✅ Connected to AI Brain!")
+        socket_connected = True
+    except Exception as e:
+        print("⚠️ AI Brain not running (network_brain.py). Simulation will run without perception control.")
+
+    world.reset()
+
+    # Find wheel joints to apply velocity
+    left_wheel_idx = carter.get_dof_index("left_wheel")
+    right_wheel_idx = carter.get_dof_index("right_wheel")
 
     print("Simulation scene is ready! You can now explore it in the GUI.")
     print("Press Ctrl+C in the terminal to exit, or close the window.")
+    
     while simulation_app.is_running():
         world.step(render=True)
+        
+        # Default behavior: DRIVE
+        target_vel = 15.0
+        
+        if socket_connected:
+            try:
+                # Capture image from camera
+                img_data = camera.get_rgba()
+                if img_data is not None and img_data.shape[0] > 0:
+                    # Convert RGBA to RGB
+                    frame = img_data[:, :, :3].astype(np.uint8)
+                    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                    
+                    # Compress and send
+                    _, encoded = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+                    data = encoded.tobytes()
+                    client_socket.sendall(struct.pack('<I', len(data)))
+                    client_socket.sendall(data)
+                    
+                    # Receive response
+                    response = client_socket.recv(1024).decode('utf-8')
+                    if response == "BRAKE":
+                        target_vel = 0.0
+            except Exception as e:
+                print(f"Socket error: {e}")
+                socket_connected = False
+                
+        # Apply velocity to wheels
+        if left_wheel_idx is not None and right_wheel_idx is not None:
+            carter.set_joint_velocity_targets([target_vel, target_vel], joint_indices=[left_wheel_idx, right_wheel_idx])
 
 if __name__ == "__main__":
     create_scene()

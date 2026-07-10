@@ -103,17 +103,19 @@ def create_scene():
 
     print("Simulation scene is ready! You can now explore it in the GUI.")
     print("Press Ctrl+C in the terminal to exit, or close the window.")
-    video_writer = cv2.VideoWriter('/workspace/autonomous-berlin-pipeline/simulation_output.avi', cv2.VideoWriter_fourcc(*'MJPG'), 20, (640, 480))
+    
+    import os
+    frames_dir = '/workspace/autonomous-berlin-pipeline/frames'
+    os.makedirs(frames_dir, exist_ok=True)
+    
     frame_count = 0
     max_frames = 200
     
     while frame_count < max_frames:
         world.step(render=True)
         frame_count += 1
-        print(f"Rendering frame {frame_count}/{max_frames}")
         
-        # Default behavior: DRIVE
-        target_vel = 15.0
+        target_vel = 2.0
         response = "DRIVE"
         
         if socket_connected:
@@ -150,7 +152,9 @@ def create_scene():
                     color = (128, 128, 128)
                 frame = cv2.resize(frame, (640, 480))
                 cv2.putText(frame, f"AI Command: {response}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
-                video_writer.write(frame)
+                
+                # Write raw JPEG
+                cv2.imwrite(os.path.join(frames_dir, f"frame_{frame_count:04d}.jpg"), frame)
             else:
                 print("Warning: camera.get_rgba() returned empty or None data.")
         except Exception as e:
@@ -160,9 +164,7 @@ def create_scene():
         if left_wheel_idx is not None and right_wheel_idx is not None:
             carter.set_joint_velocities([target_vel, target_vel], joint_indices=[left_wheel_idx, right_wheel_idx])
 
-    print("Simulation finished. Saving video...")
-    video_writer.release()
-    print("Video saved to /workspace/autonomous-berlin-pipeline/simulation_output.mp4")
+    print("Simulation finished. Saved raw frames to", frames_dir)
 
 if __name__ == "__main__":
     create_scene()

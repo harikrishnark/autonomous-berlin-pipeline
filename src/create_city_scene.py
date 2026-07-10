@@ -107,9 +107,10 @@ def create_scene():
     frame_count = 0
     max_frames = 300
     
-    while simulation_app.is_running() and frame_count < max_frames:
+    while frame_count < max_frames:
         world.step(render=True)
         frame_count += 1
+        print(f"Rendering frame {frame_count}/{max_frames}")
         
         # Default behavior: DRIVE
         target_vel = 15.0

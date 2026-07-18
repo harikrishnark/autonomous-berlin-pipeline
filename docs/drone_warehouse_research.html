@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drone Warehouse Simulation — Isaac Sim 6.0 Research</title>
+  <meta name="description" content="Comprehensive research on drone simulation frameworks for warehouse environments in NVIDIA Isaac Sim 6.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: rgba(255, 255, 255, 0.04);
+      --bg-card-hover: rgba(255, 255, 255, 0.07);
+      --glass: rgba(255, 255, 255, 0.06);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #e8e8f0;
+      --text-secondary: #8b8b9e;
+      --text-muted: #5a5a6e;
+      --accent-blue: #4f8cff;
+      --accent-purple: #a855f7;
+      --accent-green: #34d399;
+      --accent-orange: #f59e0b;
+      --accent-pink: #ec4899;
+      --accent-cyan: #22d3ee;
+      --gradient-hero: linear-gradient(135deg, #4f8cff 0%, #a855f7 50%, #ec4899 100%);
+      --gradient-card: linear-gradient(135deg, rgba(79, 140, 255, 0.1), rgba(168, 85, 247, 0.05));
+      --shadow-glow: 0 0 60px rgba(79, 140, 255, 0.15);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ─── Animated Background ─── */
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(rgba(79, 140, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79, 140, 255, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.4;
+      z-index: 0;
+      pointer-events: none;
+      animation: float 20s ease-in-out infinite;
+    }
+    .bg-orb--1 { width: 500px; height: 500px; background: var(--accent-blue); top: -10%; left: -5%; animation-delay: 0s; }
+    .bg-orb--2 { width: 400px; height: 400px; background: var(--accent-purple); top: 40%; right: -10%; animation-delay: -7s; }
+    .bg-orb--3 { width: 350px; height: 350px; background: var(--accent-pink); bottom: -5%; left: 30%; animation-delay: -14s; }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(30px, -20px) scale(1.05); }
+      50% { transform: translate(-20px, 30px) scale(0.95); }
+      75% { transform: translate(20px, 20px) scale(1.02); }
+    }
+
+    /* ─── Container ─── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+    /* ─── Navigation ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(10, 10, 15, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      transition: var(--transition);
+    }
+    .nav-inner {
+      max-width: 1100px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-logo {
+      font-weight: 800; font-size: 1.1rem;
+      background: var(--gradient-hero); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a {
+      color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;
+      font-weight: 500; transition: var(--transition); position: relative;
+    }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
+      background: var(--gradient-hero); border-radius: 1px; transition: width 0.3s ease;
+    }
+    .nav-links a:hover::after { width: 100%; }
+
+    /* ─── Hero ─── */
+    .hero {
+      padding: 160px 0 100px;
+      text-align: center;
+      position: relative;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: 100px;
+      background: rgba(79, 140, 255, 0.1);
+      border: 1px solid rgba(79, 140, 255, 0.2);
+      font-size: 0.78rem; font-weight: 600; color: var(--accent-blue);
+      margin-bottom: 28px; letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .hero-badge .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent-green);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.2rem);
+      font-weight: 900; line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+    }
+    .hero h1 .gradient {
+      background: var(--gradient-hero);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.15rem; color: var(--text-secondary);
+      max-width: 600px; margin: 0 auto 40px; line-height: 1.7;
+    }
+    .hero-stats {
+      display: flex; justify-content: center; gap: 48px; flex-wrap: wrap;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat .num {
+      font-size: 2rem; font-weight: 800;
+      background: var(--gradient-hero);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-stat .label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+
+    /* ─── Section Headers ─── */
+    .section { padding: 80px 0; }
+    .section-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--accent-blue); margin-bottom: 12px;
+    }
+    .section-label .line { width: 24px; height: 2px; background: var(--accent-blue); border-radius: 1px; }
+    .section h2 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 1.05rem; color: var(--text-secondary);
+      max-width: 650px; margin-bottom: 48px;
+    }
+
+    /* ─── Warehouse Options Grid ─── */
+    .warehouse-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 20px;
+    }
+    .warehouse-card {
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .warehouse-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--gradient-hero); opacity: 0; transition: opacity 0.3s ease;
+    }
+    .warehouse-card:hover { background: var(--bg-card-hover); transform: translateY(-4px); border-color: rgba(255,255,255,0.15); }
+    .warehouse-card:hover::before { opacity: 1; }
+    .warehouse-card .icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 18px;
+    }
+    .warehouse-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
+    .warehouse-card .tag {
+      display: inline-block; padding: 3px 10px; border-radius: 6px;
+      font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 12px;
+    }
+    .warehouse-card p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; }
+
+    .tag--easy { background: rgba(52, 211, 153, 0.12); color: var(--accent-green); }
+    .tag--medium { background: rgba(245, 158, 11, 0.12); color: var(--accent-orange); }
+    .tag--advanced { background: rgba(236, 72, 153, 0.12); color: var(--accent-pink); }
+
+    .icon--creator { background: linear-gradient(135deg, rgba(79,140,255,0.15), rgba(79,140,255,0.05)); }
+    .icon--assets { background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(168,85,247,0.05)); }
+    .icon--custom { background: linear-gradient(135deg, rgba(52,211,153,0.15), rgba(52,211,153,0.05)); }
+
+    /* ─── Framework Cards ─── */
+    .framework-cards { display: flex; flex-direction: column; gap: 24px; }
+    .fw-card {
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 36px 32px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 28px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .fw-card:hover { background: var(--bg-card-hover); transform: translateY(-3px); border-color: rgba(255,255,255,0.15); }
+    .fw-rank {
+      width: 56px; height: 56px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: 900;
+      flex-shrink: 0;
+    }
+    .fw-rank--1 { background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05)); color: var(--accent-orange); }
+    .fw-rank--2 { background: linear-gradient(135deg, rgba(79,140,255,0.2), rgba(79,140,255,0.05)); color: var(--accent-blue); }
+    .fw-rank--3 { background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(168,85,247,0.05)); color: var(--accent-purple); }
+    .fw-rank--4 { background: linear-gradient(135deg, rgba(236,72,153,0.2), rgba(236,72,153,0.05)); color: var(--accent-pink); }
+
+    .fw-body h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 4px; }
+    .fw-body .subtitle { font-size: 0.82rem; color: var(--accent-blue); font-weight: 600; margin-bottom: 12px; }
+    .fw-body p { font-size: 0.92rem; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.65; }
+    .fw-tasks {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+    }
+    .fw-task {
+      padding: 4px 12px; border-radius: 6px;
+      font-size: 0.72rem; font-weight: 600;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-secondary);
+    }
+    .fw-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.82rem; font-weight: 600; color: var(--accent-blue);
+      text-decoration: none; transition: var(--transition);
+    }
+    .fw-link:hover { color: var(--accent-purple); gap: 10px; }
+    .fw-link svg { width: 14px; height: 14px; transition: transform 0.3s ease; }
+    .fw-link:hover svg { transform: translateX(3px); }
+
+    /* ─── Project Ideas ─── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 20px;
+    }
+    .project-card {
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      transition: var(--transition);
+      position: relative;
+    }
+    .project-card:hover { background: var(--bg-card-hover); transform: translateY(-4px); border-color: rgba(255,255,255,0.15); }
+    .project-card .project-num {
+      font-size: 3rem; font-weight: 900; line-height: 1;
+      background: var(--gradient-hero);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      opacity: 0.2; margin-bottom: 8px;
+    }
+    .project-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+    .project-card p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; }
+    .project-card .skills-label {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px;
+    }
+    .project-card .skills {
+      display: flex; flex-wrap: wrap; gap: 5px;
+    }
+    .project-card .skill {
+      padding: 3px 10px; border-radius: 5px;
+      font-size: 0.7rem; font-weight: 500;
+      background: rgba(79,140,255,0.08);
+      color: var(--accent-blue);
+    }
+    .difficulty-bar {
+      display: flex; gap: 3px; margin-bottom: 14px;
+    }
+    .difficulty-bar .pip {
+      width: 32px; height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.08);
+    }
+    .difficulty-bar .pip.active { background: var(--accent-green); }
+    .difficulty-bar.medium .pip.active { background: var(--accent-orange); }
+    .difficulty-bar.hard .pip.active { background: var(--accent-pink); }
+    .difficulty-bar.boss .pip.active { background: linear-gradient(90deg, var(--accent-pink), var(--accent-purple)); }
+
+    /* ─── Links Table ─── */
+    .links-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 6px;
+    }
+    .links-table th {
+      text-align: left; padding: 12px 16px;
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-muted);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .links-table td {
+      padding: 14px 16px;
+      font-size: 0.88rem;
+      background: var(--bg-card);
+      transition: var(--transition);
+    }
+    .links-table tr:hover td { background: var(--bg-card-hover); }
+    .links-table tr td:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); font-weight: 600; }
+    .links-table tr td:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+    .links-table a {
+      color: var(--accent-blue); text-decoration: none;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+      transition: var(--transition);
+    }
+    .links-table a:hover { color: var(--accent-purple); }
+    .links-table .desc-cell { color: var(--text-secondary); font-size: 0.82rem; }
+
+    /* ─── Recommendation Banner ─── */
+    .reco-banner {
+      background: linear-gradient(135deg, rgba(79,140,255,0.08), rgba(168,85,247,0.06), rgba(236,72,153,0.04));
+      border: 1px solid rgba(79,140,255,0.15);
+      border-radius: var(--radius);
+      padding: 40px 36px;
+      margin-top: 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .reco-banner::before {
+      content: '💡';
+      position: absolute; top: -20px; right: -10px;
+      font-size: 120px; opacity: 0.05;
+    }
+    .reco-banner h3 {
+      font-size: 1.4rem; font-weight: 800; margin-bottom: 12px;
+      background: var(--gradient-hero);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .reco-banner p { font-size: 0.95rem; color: var(--text-secondary); max-width: 700px; line-height: 1.7; }
+    .reco-steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; margin-top: 24px;
+    }
+    .reco-step {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px; border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.03);
+    }
+    .reco-step .step-num {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: rgba(79,140,255,0.15);
+      color: var(--accent-blue); font-weight: 800; font-size: 0.8rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .reco-step .step-text { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; }
+
+    /* ─── Footer ─── */
+    footer {
+      padding: 40px 0;
+      text-align: center;
+      border-top: 1px solid var(--glass-border);
+      margin-top: 60px;
+    }
+    footer p { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ─── Scroll Animations ─── */
+    .fade-up {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .fw-card { grid-template-columns: 1fr; }
+      .hero-stats { gap: 28px; }
+      .hero { padding: 130px 0 60px; }
+      .section { padding: 50px 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb--1"></div>
+<div class="bg-orb bg-orb--2"></div>
+<div class="bg-orb bg-orb--3"></div>
+
+<!-- ─── Navigation ─── -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">🚁 Drone Warehouse Lab</div>
+    <ul class="nav-links">
+      <li><a href="#warehouse">Warehouse</a></li>
+      <li><a href="#frameworks">Frameworks</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#links">Resources</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ─── Hero ─── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge"><span class="dot"></span> Isaac Sim 6.0 Research</div>
+    <h1>Drone <span class="gradient">Warehouse</span><br>Simulation</h1>
+    <p>A comprehensive guide to building drone simulations inside photorealistic warehouses — from simple patrol scripts to full autonomous delivery swarms.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">4</div><div class="label">Frameworks</div></div>
+      <div class="hero-stat"><div class="num">5</div><div class="label">Project Ideas</div></div>
+      <div class="hero-stat"><div class="num">6</div><div class="label">GitHub Repos</div></div>
+      <div class="hero-stat"><div class="num">∞</div><div class="label">Fun Factor</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Warehouse Environment ─── -->
+<section id="warehouse" class="section">
+  <div class="container">
+    <div class="section-label"><span class="line"></span> Environment Setup</div>
+    <h2>Build Your Warehouse</h2>
+    <p class="section-desc">Three ways to create a warehouse environment, from one-click generation to full creative control.</p>
+
+    <div class="warehouse-grid">
+      <div class="warehouse-card fade-up">
+        <div class="icon icon--creator">🏗️</div>
+        <span class="tag tag--easy">Easiest</span>
+        <h3>Warehouse Creator Extension</h3>
+        <p>Draw a 2D floor plan in Isaac Sim's built-in grid editor. Click "Build Warehouse" and get a full 3D scene with shelves, racks, and floors instantly. Access via <strong>Tools → Modular Warehouse Creator</strong>.</p>
+      </div>
+      <div class="warehouse-card fade-up" style="transition-delay: 0.1s;">
+        <div class="icon icon--assets">📦</div>
+        <span class="tag tag--easy">Easy</span>
+        <h3>Pre-Built USD Assets</h3>
+        <p>Isaac Sim ships with ready-to-use warehouse environments in small, medium, and large variants. Find them in <strong>Content Browser → Isaac/Environments/</strong>. Open and go.</p>
+      </div>
+      <div class="warehouse-card fade-up" style="transition-delay: 0.2s;">
+        <div class="icon icon--custom">🎨</div>
+        <span class="tag tag--medium">Flexible</span>
+        <h3>SimReady Drag & Drop</h3>
+        <p>Build from scratch by dragging individual SimReady assets — pallets, boxes, shelving units, conveyor belts, forklifts — into a blank stage for total creative control.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Drone Frameworks ─── -->
+<section id="frameworks" class="section">
+  <div class="container">
+    <div class="section-label"><span class="line"></span> Drone Frameworks</div>
+    <h2>Pick Your Flight Stack</h2>
+    <p class="section-desc">Four open-source frameworks for flying drones in Isaac Sim, ranked by fun factor and warehouse applicability.</p>
+
+    <div class="framework-cards">
+      <!-- OmniDrones -->
+      <div class="fw-card fade-up">
+        <div class="fw-rank fw-rank--1">🏆</div>
+        <div class="fw-body">
+          <h3>OmniDrones</h3>
+          <div class="subtitle">Best for RL Research & Swarms</div>
+          <p>The most comprehensive drone RL platform on Isaac Sim. Train swarms to carry platforms cooperatively, fly in formation through warehouses, or balance inverted pendulums mid-flight. GPU-accelerated for hundreds of simultaneous drones.</p>
+          <div class="fw-tasks">
+            <span class="fw-task">Hover</span>
+            <span class="fw-task">Track</span>
+            <span class="fw-task">FlyThrough</span>
+            <span class="fw-task">PayloadHover</span>
+            <span class="fw-task">Formation</span>
+            <span class="fw-task">TransportTrack</span>
+            <span class="fw-task">InvertedPendulum</span>
+          </div>
+          <a href="https://github.com/btx0424/OmniDrones" target="_blank" class="fw-link">
+            View on GitHub <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Gripper Drone -->
+      <div class="fw-card fade-up" style="transition-delay: 0.1s;">
+        <div class="fw-rank fw-rank--2">🎯</div>
+        <div class="fw-body">
+          <h3>Gripper-Drone-Pickplace</h3>
+          <div class="subtitle">Best for Warehouse Delivery</div>
+          <p>Train quadcopters to autonomously identify, approach, grasp, and transport objects using deep RL with physics-based gripper simulation. This is exactly what warehouse drone delivery looks like — no cheating!</p>
+          <div class="fw-tasks">
+            <span class="fw-task">Object Detection</span>
+            <span class="fw-task">Approach</span>
+            <span class="fw-task">Grasp</span>
+            <span class="fw-task">Transport</span>
+            <span class="fw-task">Deep RL</span>
+          </div>
+          <a href="https://github.com/uiseoklee/Isaaclab-Gripper-Drone-Pickplace" target="_blank" class="fw-link">
+            View on GitHub <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Pegasus -->
+      <div class="fw-card fade-up" style="transition-delay: 0.2s;">
+        <div class="fw-rank fw-rank--3">✈️</div>
+        <div class="fw-body">
+          <h3>Pegasus Simulator</h3>
+          <div class="subtitle">Best for Realistic Flight with PX4</div>
+          <p>Full-stack drone simulation integrated with PX4 Autopilot — the same flight controller in real commercial drones. Includes GPS, magnetometer, barometer, and ROS 2 support. If you build a physical drone, your code transfers directly.</p>
+          <div class="fw-tasks">
+            <span class="fw-task">PX4 Autopilot</span>
+            <span class="fw-task">ROS 2</span>
+            <span class="fw-task">Multi-Vehicle</span>
+            <span class="fw-task">SITL</span>
+            <span class="fw-task">MAVLink</span>
+          </div>
+          <a href="https://github.com/PegasusSimulator/PegasusSimulator" target="_blank" class="fw-link">
+            View on GitHub <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Drone Racer -->
+      <div class="fw-card fade-up" style="transition-delay: 0.3s;">
+        <div class="fw-rank fw-rank--4">🏎️</div>
+        <div class="fw-body">
+          <h3>Isaac Drone Racer</h3>
+          <div class="subtitle">Best for Pure Fun</div>
+          <p>Train high-speed autonomous drone racing agents using RL. Watch them evolve from crashing into every wall to silky-smooth racing lines. Adapt racing gates to warehouse aisles for a "speed delivery" challenge!</p>
+          <div class="fw-tasks">
+            <span class="fw-task">High-Speed</span>
+            <span class="fw-task">Obstacle Avoidance</span>
+            <span class="fw-task">Racing</span>
+            <span class="fw-task">RL Training</span>
+          </div>
+          <a href="https://github.com/kousheekc/isaac_drone_racer" target="_blank" class="fw-link">
+            View on GitHub <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Project Ideas ─── -->
+<section id="projects" class="section">
+  <div class="container">
+    <div class="section-label"><span class="line"></span> Side Projects</div>
+    <h2>5 Fun Project Ideas</h2>
+    <p class="section-desc">Ranked from easy weekend hack to full boss-level autonomous warehouse.</p>
+
+    <div class="projects-grid">
+      <div class="project-card fade-up">
+        <div class="project-num">01</div>
+        <div class="difficulty-bar">
+          <div class="pip active"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div>
+        </div>
+        <h3>📦 Warehouse Inspection Drone</h3>
+        <p>Spawn a drone with RGB camera + LiDAR, script a patrol path through the aisles, and capture synthetic data of shelves for training perception models.</p>
+        <div class="skills-label">Skills you'll learn</div>
+        <div class="skills">
+          <span class="skill">USD Setup</span>
+          <span class="skill">Camera Sensors</span>
+          <span class="skill">Scripted Control</span>
+        </div>
+      </div>
+
+      <div class="project-card fade-up" style="transition-delay: 0.1s;">
+        <div class="project-num">02</div>
+        <div class="difficulty-bar medium">
+          <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+        </div>
+        <h3>🚚 Package Delivery Relay</h3>
+        <p>Use the Gripper-Drone framework to train a drone to pick up packages from shelves and deliver them to a loading dock. Full RL pipeline!</p>
+        <div class="skills-label">Skills you'll learn</div>
+        <div class="skills">
+          <span class="skill">Reinforcement Learning</span>
+          <span class="skill">Gripper Physics</span>
+          <span class="skill">Reward Shaping</span>
+        </div>
+      </div>
+
+      <div class="project-card fade-up" style="transition-delay: 0.2s;">
+        <div class="project-num">03</div>
+        <div class="difficulty-bar medium">
+          <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div>
+        </div>
+        <h3>🐝 Drone Swarm Inventory</h3>
+        <p>Deploy 4–8 drones in formation using OmniDrones to systematically scan every shelf in the warehouse, coordinating to avoid collisions.</p>
+        <div class="skills-label">Skills you'll learn</div>
+        <div class="skills">
+          <span class="skill">Multi-Agent RL</span>
+          <span class="skill">Formation Control</span>
+          <span class="skill">Collision Avoidance</span>
+        </div>
+      </div>
+
+      <div class="project-card fade-up" style="transition-delay: 0.3s;">
+        <div class="project-num">04</div>
+        <div class="difficulty-bar hard">
+          <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+        </div>
+        <h3>🏁 Warehouse Speed Run</h3>
+        <p>Adapt the Drone Racer to navigate warehouse aisles at maximum speed. Add domain randomization — random box positions, lighting changes — for robust policies.</p>
+        <div class="skills-label">Skills you'll learn</div>
+        <div class="skills">
+          <span class="skill">High-Speed Control</span>
+          <span class="skill">Domain Randomization</span>
+          <span class="skill">Sim-to-Real</span>
+        </div>
+      </div>
+
+      <div class="project-card fade-up" style="transition-delay: 0.4s;">
+        <div class="project-num">05</div>
+        <div class="difficulty-bar boss">
+          <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+        </div>
+        <h3>🏭 Full Autonomous Warehouse</h3>
+        <p>Combine everything: Warehouse Creator environment, multiple Gripper-Drones for delivery, OmniDrones for coordination, PX4 via Pegasus for realistic flight, and ROS 2 for central management.</p>
+        <div class="skills-label">Skills you'll learn</div>
+        <div class="skills">
+          <span class="skill">Full-Stack Robotics</span>
+          <span class="skill">Multi-Agent Coordination</span>
+          <span class="skill">ROS 2</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendation -->
+    <div class="reco-banner fade-up">
+      <h3>💡 My Recommendation: Start with Project #2</h3>
+      <p>The Package Delivery Relay gives you the best balance of "looks incredibly cool" + "teaches you useful RL skills" + "runs on your RTX 4000 Ada on RunPod".</p>
+      <div class="reco-steps">
+        <div class="reco-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Generate a warehouse with the <strong>Warehouse Creator</strong> in 2 minutes</div>
+        </div>
+        <div class="reco-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Clone the <strong>Gripper-Drone-Pickplace</strong> repo into RunPod</div>
+        </div>
+        <div class="reco-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Train the drone to pick up boxes and deliver across the warehouse</div>
+        </div>
+        <div class="reco-step">
+          <div class="step-num">4</div>
+          <div class="step-text">Stream training visualization through your <strong>WebSocket tunnel</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Resources ─── -->
+<section id="links" class="section">
+  <div class="container">
+    <div class="section-label"><span class="line"></span> Resources</div>
+    <h2>Documentation & Repos</h2>
+    <p class="section-desc">All the links you need to get started.</p>
+
+    <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 16px; color: var(--text-secondary);">📚 Official Documentation</h3>
+    <table class="links-table fade-up">
+      <thead>
+        <tr><th>Resource</th><th>Link</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Isaac Sim 6.0 Docs</td><td><a href="https://docs.isaacsim.omniverse.nvidia.com/latest/index.html" target="_blank">docs.isaacsim.omniverse.nvidia.com</a></td></tr>
+        <tr><td>Isaac Lab (RL Framework)</td><td><a href="https://isaac-sim.github.io/IsaacLab/" target="_blank">isaac-sim.github.io/IsaacLab</a></td></tr>
+        <tr><td>Environment Assets</td><td><a href="https://docs.isaacsim.omniverse.nvidia.com/latest/assets/usd_assets_environments.html" target="_blank">usd_assets_environments.html</a></td></tr>
+        <tr><td>Robot Assets</td><td><a href="https://docs.isaacsim.omniverse.nvidia.com/latest/assets/usd_assets_robots.html" target="_blank">usd_assets_robots.html</a></td></tr>
+        <tr><td>Replicator (Synthetic Data)</td><td><a href="https://docs.isaacsim.omniverse.nvidia.com/latest/replicator_tutorials/index.html" target="_blank">replicator_tutorials</a></td></tr>
+        <tr><td>ROS 2 Tutorials</td><td><a href="https://docs.isaacsim.omniverse.nvidia.com/latest/ros2_tutorials/index.html" target="_blank">ros2_tutorials</a></td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size: 1rem; font-weight: 700; margin: 32px 0 16px; color: var(--text-secondary);">🔧 GitHub Repositories</h3>
+    <table class="links-table fade-up">
+      <thead>
+        <tr><th>Project</th><th class="desc-cell">Description</th><th>Link</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>OmniDrones</td><td class="desc-cell">Multi-rotor RL (hover, swarm, transport)</td><td><a href="https://github.com/btx0424/OmniDrones" target="_blank">btx0424/OmniDrones</a></td></tr>
+        <tr><td>Gripper Drone</td><td class="desc-cell">Drone grasping + delivery via deep RL</td><td><a href="https://github.com/uiseoklee/Isaaclab-Gripper-Drone-Pickplace" target="_blank">uiseoklee/Isaaclab-Gripper-Drone…</a></td></tr>
+        <tr><td>Pegasus Sim</td><td class="desc-cell">PX4 autopilot + ROS 2 integration</td><td><a href="https://github.com/PegasusSimulator/PegasusSimulator" target="_blank">PegasusSimulator</a></td></tr>
+        <tr><td>Drone Racer</td><td class="desc-cell">High-speed autonomous drone racing</td><td><a href="https://github.com/kousheekc/isaac_drone_racer" target="_blank">kousheekc/isaac_drone_racer</a></td></tr>
+        <tr><td>VSLAM-UAV</td><td class="desc-cell">Visual SLAM pipeline for drones</td><td><a href="https://github.com/bandofpv/VSLAM-UAV" target="_blank">bandofpv/VSLAM-UAV</a></td></tr>
+        <tr><td>Isaac Lab</td><td class="desc-cell">NVIDIA's official RL framework</td><td><a href="https://github.com/isaac-sim/IsaacLab" target="_blank">isaac-sim/IsaacLab</a></td></tr>
+        <tr><td>Awesome Isaac Sim</td><td class="desc-cell">Curated community project list</td><td><a href="https://github.com/shaoxiang/awesome-isaac-sim" target="_blank">shaoxiang/awesome-isaac-sim</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Built for the Autonomous Berlin Pipeline · Isaac Sim 6.0 Research · July 2026</p>
+  </div>
+</footer>
+
+<script>
+  // Intersection Observer for scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

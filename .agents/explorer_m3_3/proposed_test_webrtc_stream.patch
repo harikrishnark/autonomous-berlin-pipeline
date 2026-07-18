@@ -1,0 +1,38 @@
+diff --git a/tests/e2e/test_webrtc_stream.py b/tests/e2e/test_webrtc_stream.py
+index a1b2c3d..e4f5g6h 100644
+--- a/tests/e2e/test_webrtc_stream.py
++++ b/tests/e2e/test_webrtc_stream.py
+@@ -1114,10 +1114,24 @@
+         client_code = """
+-import socket, struct, cv2, time, numpy as np
++import socket, struct, cv2, time, os, numpy as np
+ c = socket.socket()
+ c.settimeout(5.0)
+ try:
+     c.connect(('127.0.0.1', 5005))
+-    img = np.zeros((480, 640, 3), dtype=np.uint8)
+-    cv2.rectangle(img, (10, 350), (630, 470), (0, 0, 255), -1)
+-    _, encoded = cv2.imencode('.jpg', img)
+-    data = encoded.tobytes()
++    
++    # Load bus.jpg instead of drawing a dummy red rectangle to test real YOLOv8 detection
++    possible_paths = [
++        "bus.jpg",
++        "/workspace/autonomous-berlin-pipeline/bus.jpg",
++        os.path.join(os.path.dirname(__file__), "..", "..", "bus.jpg")
++    ]
++    img = None
++    for p in possible_paths:
++        if os.path.exists(p):
++            img = cv2.imread(p)
++            if img is not None:
++                break
++                
++    if img is None:
++        img = np.zeros((480, 640, 3), dtype=np.uint8)
++        cv2.rectangle(img, (10, 350), (630, 470), (0, 0, 255), -1)
++    else:
++        img = cv2.resize(img, (640, 480))
++        
++    _, encoded = cv2.imencode('.jpg', img)
++    data = encoded.tobytes()

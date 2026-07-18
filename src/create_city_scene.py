@@ -108,7 +108,7 @@ def create_scene():
     os.makedirs(frames_dir, exist_ok=True)
     
     frame_count = 0
-    max_frames = 200
+    max_frames = 100
     
     while frame_count < max_frames:
         world.step(render=True)

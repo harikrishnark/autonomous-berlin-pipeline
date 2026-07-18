@@ -1,5 +1,13 @@
 # Task List: Distributed NVIDIA Isaac Sim Pipeline
 
+## Current Status (2026-07-03)
+
+- [x] Confirmed SSH access to the shared RunPod Isaac Sim VM.
+- [x] Verified that the Isaac Sim benchmark workflow completed remotely and produced runtime metrics.
+- [ ] Retrieve the generated benchmark artifacts locally for review.
+- [ ] Resolve the livestream/WebRTC export path for a true Isaac Sim video stream.
+- [ ] Decide whether to continue with the live stream path or keep using the local fallback video output for the portfolio demo.
+
 ## Phase 1: Environment & Foundational Scripts
 
 - [x] Set up Python environment with PyTorch and YOLOv8.

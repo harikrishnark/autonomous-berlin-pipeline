@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mission Debrief: Autonomous Berlin</title>
+    <!-- Google Fonts for Monospace Cyberpunk feel -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <!-- MermaidJS -->
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+      mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Matrix style background -->
+      <div class="bg-overlay" style="background-image: url('/cyber_bg.jpg');"></div>
+
+      <header class="glitch-header">
+        <h1 data-text="MISSION_DEBRIEF">MISSION_DEBRIEF</h1>
+        <h2>PROJECT: AUTONOMOUS BERLIN PIPELINE</h2>
+        <div class="status-bar">
+          <span class="status-indicator"></span> STATUS: <span class="typing-text">ONLINE</span>
+        </div>
+      </header>
+
+      <main class="content-container">
+        
+        <!-- Chapter 1: Objective -->
+        <section class="card glass">
+          <div class="card-header">
+            <h3>[01] THE_OBJECTIVE</h3>
+          </div>
+          <div class="card-body">
+            <p>
+              The goal: Deploy an end-to-end autonomous driving pipeline. A vehicle navigating a highly realistic simulation of Berlin in <strong>Isaac Sim</strong>, receiving real-time perception data, and being controlled by a remote PyTorch <strong>YOLOv8 Brain</strong>.
+            </p>
+            <div class="image-wrapper">
+              <img src="/vehicle_schematic.jpg" alt="Autonomous Vehicle Schematic" class="schematic-img">
+            </div>
+          </div>
+        </section>
+
+        <!-- Chapter 2: The Simulator -->
+        <section class="card glass">
+          <div class="card-header">
+            <h3>[02] THE_SIMULATOR (ISAAC SIM)</h3>
+          </div>
+          <div class="card-body">
+            <p>
+              Running Isaac Sim in a headless cloud environment (RunPod) proved treacherous. Headless Replicator cameras suffer from memory-leak and overscan <code>NoneType</code> bugs when rendering without a physical display.
+            </p>
+            <div class="code-block">
+              <pre><code>// The Error:
+TypeError: unsupported operand type(s) for -: 'NoneType' and 'NoneType'
+// Occurs when Replicator tries to bind to a non-existent GPU display context.</code></pre>
+            </div>
+            <p>
+              <strong>The Fix:</strong> We wrapped the execution in a virtual frame buffer (<code>xvfb-run</code>) to trick the engine into operating in headed mode, bypassing the bugs entirely.
+            </p>
+            <div class="code-block">
+              <pre><code>$ xvfb-run -a -s '-screen 0 640x480x24' python3 src/create_city_scene.py</code></pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- Chapter 3: The Architecture -->
+        <section class="card glass">
+          <div class="card-header">
+            <h3>[03] SYSTEM_ARCHITECTURE</h3>
+          </div>
+          <div class="card-body">
+            <p>
+              How does the simulator talk to the AI? We established a raw TCP Socket connection transferring raw image byte arrays.
+            </p>
+            <div class="mermaid">
+              graph TD
+                subgraph "The World (Isaac Sim)"
+                  A[create_city_scene.py] -->|1. Render Camera Frame| B(cv2.imencode JPEG)
+                  B -->|2. Send Byte Array| C{TCP Socket Port 5005}
+                end
+                subgraph "The Brain (YOLOv8)"
+                  C -->|3. Receive Bytes| D(network_brain.py)
+                  D -->|4. Decode Image| E[YOLOv8 Inference]
+                  E -->|5. Object Close?| F{Logic: Y > 400?}
+                  F -- Yes --> G[BRAKE]
+                  F -- No --> H[DRIVE]
+                end
+                G -->|6. Send Command| C
+                H -->|6. Send Command| C
+                C -->|7. Apply Velocity| A
+            </div>
+          </div>
+        </section>
+
+        <!-- Chapter 4: The Output -->
+        <section class="card glass final-output">
+          <div class="card-header">
+            <h3>[04] FINAL_OUTPUT</h3>
+          </div>
+          <div class="card-body text-center">
+            <p>Simulation successful. 200 frames generated and stitched via FFmpeg.</p>
+            <div class="video-container">
+              <video controls autoplay loop muted>
+                <source src="/simulation_output.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </section>
+
+        <!-- Chapter 5: Small City Crash Test -->
+        <section class="card glass final-output">
+          <div class="card-header">
+            <h3>[05] KINEMATIC_CRASH_TEST</h3>
+          </div>
+          <div class="card-body text-center">
+            <p>Procedural mini-city layout. Kinematic crash simulation against a concrete barrier at 30 fps.</p>
+            <div class="video-container">
+              <video controls autoplay loop muted>
+                <source src="/small_city_output.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <footer>
+        <p>> END OF TRANSMISSION.</p>
+      </footer>
+    </div>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

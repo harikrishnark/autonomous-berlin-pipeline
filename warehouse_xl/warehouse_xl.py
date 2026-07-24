@@ -275,14 +275,17 @@ print("Warming up renderer...")
 apply_frame(0.0)
 place_camera(0.0)
 for _ in range(40):
-    world.render()
+    world.step(render=True)
 
 
 def capture(path):
-    img = camera.get_rgba()
-    if img is not None and img.size > 0:
-        cv2.imwrite(path, cv2.cvtColor(img[:, :, :3].astype(np.uint8), cv2.COLOR_RGB2BGR))
-        return True
+    try:
+        img = camera.get_rgba()
+        if img is not None and img.size > 0:
+            cv2.imwrite(path, cv2.cvtColor(img[:, :, :3].astype(np.uint8), cv2.COLOR_RGB2BGR))
+            return True
+    except Exception as e:
+        print(f"Capture warning at {path}: {e}")
     return False
 
 

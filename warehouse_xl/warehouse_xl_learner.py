@@ -542,10 +542,13 @@ def capture(path):
     renderer handed back an empty frame (which happens if the render pipeline
     isn't ready — a useful signal that something is wrong).
     """
-    img = camera.get_rgba()
-    if img is not None and img.size > 0:
-        cv2.imwrite(path, cv2.cvtColor(img[:, :, :3].astype(np.uint8), cv2.COLOR_RGB2BGR))
-        return True
+    try:
+        img = camera.get_rgba()
+        if img is not None and img.size > 0:
+            cv2.imwrite(path, cv2.cvtColor(img[:, :, :3].astype(np.uint8), cv2.COLOR_RGB2BGR))
+            return True
+    except Exception as e:
+        print(f"Capture warning at {path}: {e}")
     return False
 
 

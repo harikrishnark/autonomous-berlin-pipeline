@@ -275,7 +275,7 @@ print("Warming up renderer...")
 apply_frame(0.0)
 place_camera(0.0)
 for _ in range(40):
-    world.step(render=True)
+    world.render()
 
 
 def capture(path):

@@ -24,3 +24,13 @@ bus.jpg
 .vscode/
 .idea/
 .DS_Store
+
+# Logs and Videos / Outputs
+*.mp4
+*.avi
+*.log
+frames/
+frames_cinematic/
+frames_small_city/
+warehouse_xl_frames/
+

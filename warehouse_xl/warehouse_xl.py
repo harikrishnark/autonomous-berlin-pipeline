@@ -247,7 +247,6 @@ def apply_frame(t):
 # ---------------------------------------------------------------- camera ----
 camera = Camera(prim_path="/World/Cam", position=np.array([0, 0, 12]),
                 frequency=FPS, resolution=(1280, 720))
-camera.initialize()
 world.reset()
 camera.initialize()
 usd_cam = UsdGeom.Camera(stage.GetPrimAtPath("/World/Cam"))
@@ -275,7 +274,7 @@ print("Warming up renderer...")
 apply_frame(0.0)
 place_camera(0.0)
 for _ in range(40):
-    world.render()
+    world.step(render=True)
 
 
 def capture(path):
@@ -294,7 +293,7 @@ if SMOKE:
         apply_frame(t)
         place_camera(t)
         for _ in range(15):
-            world.render()
+            world.step(render=True)
         fx, fy, fyaw, fh = interp4(FORK_WP, t)
         cx, cy, _ = car_pose(t)
         ok = capture(f"/workspace/smoke_xl_t{int(t * 10):03d}.jpg")
@@ -306,7 +305,7 @@ else:
         t = i / FPS
         apply_frame(t)
         place_camera(t)
-        world.render()
+        world.step(render=True)
         if capture(os.path.join(FRAMES_DIR, f"frame_{i:04d}.jpg")):
             saved += 1
         if (i + 1) % 100 == 0:

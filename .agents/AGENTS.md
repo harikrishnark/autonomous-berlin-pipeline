@@ -4,3 +4,8 @@
 * **White Screen Overexposure:** High intensity values (e.g. `500.0` or `2000.0`) on lights like `DomeLight` or `DistantLight` in headless mode (especially when lacking proper PBR materials or base color textures) can blow out the camera's auto-exposure and result in a solid white or bright gray screen. Use much lower intensities, such as `10.0` to `50.0`, to prevent overexposure when procedurally rendering scenes.
 * **Verification of Render Quality**: Do not rely on simple Canny edge detection or mean pixel values to verify that complex procedural scenes rendered correctly in headless mode.
 * **Prefer Built-in Tools**: Always use existing Isaac Sim tools and APIs (such as Isaac Replicator or Isaac Manipulator) first for tasks like object detection, synthetic data generation, or render verification. Only use 3rd-party external tools if there is absolutely no viable built-in alternative.
+* **Single Camera Initialization**: Call `world.reset()` before initializing `Camera` objects (`camera.initialize()`). Never call `camera.initialize()` prior to `world.reset()`, as this creates duplicate Replicator annotators and breaks image capture.
+* **Kinematic Render Loops**: In kinematic animation scripts where object poses are driven by script interpolators rather than PhysX rigid bodies, use `world.render()` in the loop rather than `world.step()`.
+
+### Agent Workflow & Background Task Preservation
+* **Preserve Running Tasks**: When the user requests terminal commands or instructions while a background command/task is executing, provide the requested information without stopping or cancelling the active background task, unless the user explicitly commands to cancel or kill it.

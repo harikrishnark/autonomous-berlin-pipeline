@@ -274,7 +274,7 @@ print("Warming up renderer...")
 apply_frame(0.0)
 place_camera(0.0)
 for _ in range(40):
-    world.step(render=True)
+    world.render()
 
 
 def capture(path):
@@ -293,7 +293,7 @@ if SMOKE:
         apply_frame(t)
         place_camera(t)
         for _ in range(15):
-            world.step(render=True)
+            world.render()
         fx, fy, fyaw, fh = interp4(FORK_WP, t)
         cx, cy, _ = car_pose(t)
         ok = capture(f"/workspace/smoke_xl_t{int(t * 10):03d}.jpg")
@@ -305,7 +305,7 @@ else:
         t = i / FPS
         apply_frame(t)
         place_camera(t)
-        world.step(render=True)
+        world.render()
         if capture(os.path.join(FRAMES_DIR, f"frame_{i:04d}.jpg")):
             saved += 1
         if (i + 1) % 100 == 0:

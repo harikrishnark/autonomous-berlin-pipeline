@@ -34,3 +34,11 @@ frames_cinematic/
 frames_small_city/
 warehouse_xl_frames/
 
+# Credentials & SSH Keys
+*.pem
+*.key
+*.pub
+id_*
+credentials*
+*.secret
+
